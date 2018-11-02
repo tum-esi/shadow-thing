@@ -84,7 +84,7 @@ thing.addEvent(
 
 // Generate an event every 50 seconds.
 setInterval( async () => {
-    thing.events.onchange.emit("Bin is full");
+    thing.events.maintenance.emit("Bin is full");
     }, 50000
 );
 
