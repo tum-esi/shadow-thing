@@ -53,19 +53,19 @@ thing.addAction(
         enum: ["latte-machiato", "espresso", "cappuccino"]
         }
     },
-    (input) => { console.log("Brewing: " + input); }
+    (request) => { console.log("### Coffee Machine: Brewing " + request); }
 );
 
 thing.addAction(
     "abort",
     {},
-    () => {}
+    () => { console.log("### Coffee Machine: Aborting..."); }
 );
 
 thing.addAction(
     "shutdown",
     {},
-    () => {}
+    () => { console.log("### Coffee Machine: Shutting down...");}
 );
 
 thing.addEvent(
@@ -82,10 +82,11 @@ thing.addEvent(
     }
 );
 
-// Generate an event every 50 seconds.
+// Generate a maintenance event every 10 seconds.
 setInterval( async () => {
-    thing.events.maintenance.emit("Bin is full");
-    }, 50000
+    console.log("### Coffee Machine: Emitting maintenance event.");
+    thing.events.maintenance.emit("Bin is almost full.");
+    }, 10000
 );
 
 thing.expose();

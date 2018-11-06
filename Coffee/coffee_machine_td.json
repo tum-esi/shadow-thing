@@ -34,6 +34,10 @@
     },
     "actions": {
         "brew": {
+            "input": {
+                "type": "string",
+                "enum": ["latte-machiato", "espresso", "cappuccino"]
+            },
             "forms": [{"href": "actions/brew"}]
         },
         "abort": {
