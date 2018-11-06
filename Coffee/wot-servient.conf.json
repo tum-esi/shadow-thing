@@ -4,6 +4,9 @@
         "staticAddress": "127.0.0.1",
         "scriptAction": false
     },
+    "log": {
+        "level": 2
+    },
     "http": {
         "port": 8080,
         "allowSelfSigned": false
