@@ -1,0 +1,11 @@
+{
+    "servient": {
+        "staticAddress": "127.0.0.1"
+    },
+    "log": {
+        "level": 2
+    },
+    "http": {
+        "port": 8080
+    }
+}

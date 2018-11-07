@@ -1,0 +1,23 @@
+{
+  "name": "virtual-thing",
+  "version": "0.1.0",
+  "description": "Creates and deploys a virtual thing based on its TD",
+  "author": "",
+  "license": "ISC",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.lrz.de/ga25huz/virtual-thing.git"
+  },
+  "devDependencies": {
+    "typescript": "2.9.2",
+    "wot-typescript-definitions": "0.6.0-SNAPSHOT.0"
+  },
+  "dependencies": {
+    "@node-wot/binding-http": "../thingweb.node-wot/packages/binding-http",
+    "@node-wot/core": "../thingweb.node-wot/packages/core"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
