@@ -72,10 +72,10 @@ vendingMachine.addEvent(
 );
 
 // Generate an order event every 5 seconds.
-// setInterval( async () => {
-//     console.log("### Vending Machine: Ordering a coffee.");
-//     vendingMachine.events.shutdown.emit();
-//     }, 3000
-// );
+setInterval( async () => {
+    console.log("### Vending Machine: Ordering a coffee.");
+    vendingMachine.events.order.emit("espresso");
+    }, 5000
+);
 
 vendingMachine.expose();

@@ -1,12 +1,12 @@
-let coffeMachine;
+let coffeeMachine;
 let vendingMachine;
 
 // Connect to the coffee machine and create a corresponding object
-let coffePromise = WoT.fetch("http://localhost:8080/Virtual-Coffee-Machine");
-coffePromise.then(
+let coffeePromise = WoT.fetch("http://localhost:8080/Virtual-Coffee-Machine");
+coffeePromise.then(
     (thingDescription) => { 
         let fetchedObject = WoT.consume(thingDescription);
-        fetchedObject.id === "de:tum:ei:esi:fp:coffee" ? coffeMachine = fetchedObject : console.log("ERROR: The fetched object is not a coffe machine.") 
+        fetchedObject.id === "de:tum:ei:esi:fp:coffee" ? coffeeMachine = fetchedObject : console.log("ERROR: The fetched object is not a coffee machine.") 
     },
     (error) => { console.log("ERROR: ", error); }
 );
@@ -22,14 +22,14 @@ vendingPromise.then(
 );
 
 // Wait for both connections to be established and then start vending.
-Promise.all([vendingPromise, coffePromise]).then(start_vending);
+Promise.all([vendingPromise, coffeePromise]).then(start_vending);
 
 function start_vending() {
     // Set the vending machine connection flag to true
     vendingMachine.properties["connected"].write(true);
 
     // Fetch coffe machine state and update the vending machine accordingly
-    coffeMachine.properties["state"].read().then(
+    coffeeMachine.properties["state"].read().then(
         (state) => {
             vendingMachine.properties["state"].write(state);
         }
@@ -37,12 +37,12 @@ function start_vending() {
         (err) => console.log(err)
     );
 
-    // Subscribe to and handle the coffe machine's error and maintenance events
-    coffeMachine.events["maintenance"].subscribe(
+    // Subscribe to and handle the coffee machine's error and maintenance events
+    coffeeMachine.events["maintenance"].subscribe(
         (data) => { vendingMachine.actions["info"].invoke(data); },
         (err) => { console.log("MASHUP ERROR: " + err); }
     );
-    coffeMachine.events["error"].subscribe(
+    coffeeMachine.events["error"].subscribe(
         (data) => { 
             vendingMachine.actions["error"].invoke(data);
             vendingMachine.properties["state"].write("Error");
@@ -69,32 +69,29 @@ function brew(coffeeType) {
     coffeeMachine.actions["brew"].invoke(coffeeType).then( 
         () => {
             // check levels after brewing and issue warning if necessary
-            let allOkay = true;
-            let warningMessage = "";
             let stats = ["waterStatus", "coffeeStatus"];
             for (stat of stats) {
-                coffeMachine.properties[property].read().then(
+                coffeeMachine.properties[stat].read().then(
                     (level) => {
                         if (level < 20) { 
-                            allOkay = false; 
-                            warningMessage += stat + " below 20%. "; 
+                            vendingMachine.actions["info"].invoke(stat + " is less than 20% full."); 
                         }
                     }  
                 ).catch(
                     (err) => console.log(err)
                 );
             };
-            coffeMachine.properties["binStatus"].read().then(
+            coffeeMachine.properties["binStatus"].read().then(
                 (level) => {
                     if (level > 80) { 
-                        allOkay = false; 
-                        warningMessage += "Bin is more than 80% full."; 
+                        vendingMachine.actions["info"].invoke("Bin is more than 80% full.");
                     }
                 } 
             ).catch(
                 (err) => console.log(err)
             );
-            if (!allOkay) { vendingMachine.actions["info"].invoke(warningMessage); }
         }
+    ).catch(
+        (err) => { console.log(err); }
     );
 }
