@@ -16,9 +16,11 @@
   },
   "dependencies": {
     "@node-wot/binding-http": "../thingweb.node-wot/packages/binding-http",
-    "@node-wot/core": "../thingweb.node-wot/packages/core"
+    "@node-wot/core": "../thingweb.node-wot/packages/core",
+    "json-schema-faker": "0.4.7"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "tsc && node dist/cli.js"
   }
 }

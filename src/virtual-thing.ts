@@ -4,6 +4,9 @@ import { HttpServer } from "@node-wot/binding-http";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { HttpsClientFactory } from "@node-wot/binding-http";
 
+// When JSON Faker v0.5.0 Stable is realeased, change this to import
+const jsf = require("json-schema-faker");
+
 
 export class VirtualThing extends Servient {
     public readonly config: any;
@@ -69,8 +72,20 @@ export class VirtualThing extends Servient {
         });
     }
 
+    // Add read and write handlers for properties. use JSON Faker
     private addPropertyHandlers() {
-        // Add read and write handlers for properties. use JSON Faker
+        for (let property in this.thing.properties) {
+            this.thing.setPropertyReadHandler(
+                property,
+                () => { 
+                    return new Promise( (resolve, reject) => { 
+                        console.log("Property read: " + property); 
+                        resolve(jsf(this.getPropertySchema(property)));
+                    } );
+                }
+            )
+            if (this.thing.properties[property].writable) { console.log("WARNING: property write handler needs to be set."); }
+        }
     }
 
     // Print to the console whenever an action is triggered
@@ -78,12 +93,41 @@ export class VirtualThing extends Servient {
         for (let action in this.thing.actions) {
             this.thing.setActionHandler(
                 action, 
-                (received) => { return new Promise<any>( (resolve, reject) => { resolve(console.log("Action Triggered!")); } ); }
+                (received) => { return new Promise( (resolve, reject) => { console.log("Action Triggered: " + action); resolve(); } ); }
             );
         }
     }
 
+    // Randomly generate events. // TODO: maybe give the user the option to set the generation intervals in config
     private generateEvents() {
-        // Randomly generate events. // TODO: maybe give the user the option to set the generation intervals
+        for (let event in this.thing.events) {
+            // Interval between 0 and 60seconds, with 5 seconds increments
+            let interval = Math.floor(Math.random() * 12) * 5000;
+            setInterval( 
+                async () => {
+                    console.log("Emitting event: " + event);
+                    console.log("Next in: " + interval/1000 + "s");
+                    let emittedMessage = this.thingDescription.events[event].data ? jsf(this.thingDescription.events[event].data) : ""
+                    this.thing.events[event].emit(emittedMessage);
+                }, 
+                interval
+            );
+        }
+    }
+
+    // Return a JSON Schema that describes a given property
+    private getPropertySchema(property: string): object {
+        let schema: {[key: string]: any} = {
+            type: this.thingDescription.properties[property].type,
+        };
+        if (this.thingDescription.properties[property].hasOwnProperty("const")) {
+            schema.enum = [this.thingDescription.properties[property].const]
+            return schema;
+        }
+        if (this.thingDescription.properties[property].hasOwnProperty("enum")) {
+            schema.enum = this.thingDescription.properties[property].enum
+            return schema;
+        }
+        return schema;        
     }
 }
