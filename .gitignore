@@ -1,0 +1,11 @@
+# Logs
+*.log
+
+# Dependency directories
+node_modules
+
+# ignore dist
+dist/
+
+# ignore package-lock.json as not part of published module and might cause break
+package-lock.json
