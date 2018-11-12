@@ -12,7 +12,8 @@
   "devDependencies": {
     "typescript": "~3.1.6",
     "wot-typescript-definitions": "0.6.0-SNAPSHOT.0",
-    "tslint": "5.11.0"
+    "tslint": "5.11.0",
+    "@types/node": "10.12.5"
   },
   "dependencies": {
     "@node-wot/binding-http": "../thingweb.node-wot/packages/binding-http",

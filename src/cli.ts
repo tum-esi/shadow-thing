@@ -1,73 +1,40 @@
 import { VirtualThing } from "./virtual-thing"
+import { readFile } from "fs";
+import { join } from "path";
 
+// Default relative paths for the config file and the thing description
+const defaultConfig = "../virtual-thing.conf.json";
+const defaultTd = "../Coffee/coffee_machine_td.json"
 
-// An example of a TD. 
-// TODO: read from a file given as cli argument.
-let td = `{
-    "@context": "http://www.w3.org/ns/td",
-    "@type": "Thing",
-    "id": "de:tum:ei:esi:fp:coffee",
-    "name": "Virtual-Coffee-Machine",
-    "description": "A virtual coffee machine to learn the WoT TD standard",
-    "base": "http://localhost:8080/virtual-coffee-machine/",
-    "security": [{"scheme": "nosec"}],
-    "properties": {
-        "state": {
-            "type": "string",
-            "readOnly": true,
-            "enum": ["Ready", "Brewing", "Error"],
-            "forms": [{"href": "properties/state"}]
-        },
-        "waterStatus": {
-            "type": "integer",
-            "readOnly": true,
-            "unit": "%",
-            "forms": [{"href": "properties/water"}]
-        },
-        "coffeeStatus": {
-            "type": "integer",
-            "readOnly": true,
-            "unit": "%",
-            "forms": [{"href": "properties/coffee"}]
-        },
-        "binStatus": {
-            "type": "integer",
-            "readOnly": true,
-            "unit": "%",
-            "forms": [{"href": "properties/bin"}]
-        }
-    },
-    "actions": {
-        "brew": {
-            "input": {
-                "type": "string",
-                "enum": ["latte-machiato", "espresso", "cappuccino"]
-            },
-            "forms": [{"href": "actions/brew"}]
-        },
-        "abort": {
-            "forms": [{"href": "actions/abort"}]
-        },
-        "shutdown": {
-            "forms": [{"href": "actions/shutdown"}]
-        }
-    },
-    "events":{
-        "maintenance": {
-            "data": {"type": "string"},
-            "forms": [{
-                "href": "events/maintenance",
-                "subprotocol": "longpoll"
-            }]
-        },
-        "error": {
-            "data": {"type": "string"},
-            "forms": [{
-                "href": "events/error",
-                "subprotocol": "longpoll"
-            }]
-        }
-    }
-}`
+// Convert relative paths to absolute paths
+let configPath = join(__dirname, defaultConfig);
+let tdPath = join(__dirname, defaultTd);
 
-let virtualThing = new VirtualThing(td);
+let configPresentFlag = false;
+if (process.argv.length > 2) {
+    let argv = process.argv.slice(2);
+    argv.forEach( (arg) => {
+        if (configPresentFlag) {
+            configPresentFlag = false;
+            configPath = arg;
+            argv.shift();
+        
+        } else if (arg.match(/^(-c|--configfile)$/i)) {
+            configPresentFlag = true;
+            argv.shift();
+
+        } else if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
+            console.log(`Usage: virtual-thing [options] [TD]`);
+            process.exit(0);
+        }
+    });
+    if (argv.length > 0) { tdPath = argv[0]; }
+}
+
+readFile( configPath, "utf-8", (err, config) => {
+    if (err) { console.log(err); process.exit(); }
+    readFile( tdPath, "utf-8", (err, td) => {
+        if (err) { console.log(err); process.exit(); }
+        let virtualThing = new VirtualThing(td, config);
+    });
+});

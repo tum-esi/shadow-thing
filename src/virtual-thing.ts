@@ -101,8 +101,8 @@ export class VirtualThing extends Servient {
     // Randomly generate events. // TODO: maybe give the user the option to set the generation intervals in config
     private generateEvents() {
         for (let event in this.thing.events) {
-            // Interval between 0 and 60seconds, with 5 seconds increments
-            let interval = Math.floor(Math.random() * 12) * 5000;
+            // Interval between 5 and 60seconds, with 5 seconds increments
+            let interval = Math.floor(Math.random() * 11) * 5000 + 5000;
             setInterval( 
                 async () => {
                     console.log("Emitting event: " + event);
