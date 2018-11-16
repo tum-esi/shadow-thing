@@ -21,6 +21,7 @@
     "json-schema-faker": "0.4.7"
   },
   "scripts": {
+    "start": "node dist/cli.js",
     "build": "tsc",
     "dev": "tsc && node dist/cli.js"
   }

@@ -9,7 +9,7 @@
     "properties": {
         "state": {
             "type": "string",
-            "readOnly": true,
+            "readOnly": false,
             "enum": ["Ready", "Brewing", "Error"],
             "forms": [{"href": "properties/state"}]
         },
