@@ -100,7 +100,7 @@ export class VirtualThing {
             this.thing.setActionHandler(
                 action, 
                 (received) => { return new Promise( (resolve, reject) => { 
-                    if (!ajv.validate(this.thingDescription.actions[action].input, received)) { 
+                    if (this.thingDescription.actions[action].input && !ajv.validate(this.thingDescription.actions[action].input, received)) { 
                         console.warn("WARNING: Invalid input received for action: " + action);
                         reject(new Error("Invalid action input."));
                         return;
