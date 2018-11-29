@@ -29,7 +29,7 @@ if (process.argv.length > 2) {
         }
     });
 }
-// if no arguments are giiven, use the default paths ( after converting them to absolute paths )
+// if no arguments are given, use the default paths ( after converting them to absolute paths )
 if (tdPaths.length === 0) { 
     console.log("No Thing Description given. Using default TD.")
     tdPaths = [join(__dirname, defaultTd)] 

@@ -18,6 +18,7 @@
   "dependencies": {
     "@node-wot/binding-http": "../thingweb.node-wot/packages/binding-http",
     "@node-wot/core": "../thingweb.node-wot/packages/core",
+    "ajv": "6.5.5",
     "json-schema-faker": "0.4.7"
   },
   "scripts": {

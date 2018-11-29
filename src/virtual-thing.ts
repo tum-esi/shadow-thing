@@ -2,6 +2,8 @@ import * as WoT from "wot-typescript-definitions";
 
 // When JSON Faker v0.5.0 Stable is realeased, change this to import
 const jsf = require("json-schema-faker");
+const Ajv = require('ajv');
+const ajv = new Ajv();
 
 
 export class VirtualThing {
@@ -39,6 +41,16 @@ export class VirtualThing {
             console.log("TD ERROR: Thing Description must contain a name."); 
             process.exit(); 
         }
+
+        // // Read schema from disk
+        // let schema = readFileSync( "../schemas/td-validation-schema.json", "utf-8" )
+
+        // // Validate TD
+        // if (!ajv.validate(schema, this.thingDescription)) { 
+        //     console.log("TD ERROR");
+        //     console.log(validator.validate(schema, this.thingDescription));
+        //     process.exit();
+        // }
     }
 
     // Add read and write handlers for properties. use JSON Faker
@@ -53,24 +65,28 @@ export class VirtualThing {
                     } );
                 }
             )
-
             // add handlers to writable properties.
             if (this.thing.properties[property].readOnly !== true) { 
                 this.thing.properties[property].writable = true; // FIXME: This part should be removed when node-wot core is updated.
                 this.thing.setPropertyWriteHandler(
                     property,
-                    (received) => {
-                        return new Promise((resolve, reject) => {
-                            // TODO: Check for correctness
+                    (received) => { 
+                        return new Promise( (resolve, reject) => { 
+                            // Validate input
+                            if (!ajv.validate(this.thingDescription.properties[property], received)) { 
+                                console.warn("WARNING: Invalid input received for property: " + property);
+                                reject(new Error("Invalid property data."));
+                                return;
+                            }
 
-                            // Remove read handler and always return written value.
+                            // Update the read handler to always return the written value.
                             this.thing.setPropertyReadHandler(
                                 property, 
                                 () => {
                                     return new Promise((resolve, reject) => { resolve(received); });
                                 } 
                             );
-                            resolve(received)
+                            resolve();
                         });
                     }
                 )
@@ -84,9 +100,17 @@ export class VirtualThing {
             this.thing.setActionHandler(
                 action, 
                 (received) => { return new Promise( (resolve, reject) => { 
+                    if (!ajv.validate(this.thingDescription.actions[action].input, received)) { 
+                        console.warn("WARNING: Invalid input received for action: " + action);
+                        reject(new Error("Invalid action input."));
+                        return;
+                    }
                     console.log("Action -" + action + "- triggered with input: " + JSON.stringify(received));
-                    if (typeof this.thingDescription.actions[action].output === "undefined") { resolve(); }
-                    else { resolve(jsf(this.thingDescription.actions[action].output)); } 
+                    if (typeof this.thingDescription.actions[action].output === "undefined") { 
+                        resolve(); 
+                    } else { 
+                        resolve(jsf(this.thingDescription.actions[action].output)); 
+                    } 
                 } ); }
             );
         }
