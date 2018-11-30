@@ -10,7 +10,7 @@
     "url": "https://gitlab.lrz.de/ga25huz/virtual-thing.git"
   },
   "devDependencies": {
-    "typescript": "~3.1.6",
+    "typescript": "3.0.3",
     "wot-typescript-definitions": "0.6.0-SNAPSHOT.0",
     "tslint": "5.11.0",
     "@types/node": "10.12.5"
@@ -24,6 +24,6 @@
   "scripts": {
     "start": "node dist/cli.js",
     "build": "tsc",
-    "dev": "tsc && node dist/cli.js"
+    "dev": "npm run build && npm run start"
   }
 }
