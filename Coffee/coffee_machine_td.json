@@ -17,18 +17,24 @@
             "type": "integer",
             "readOnly": true,
             "unit": "%",
+            "maximum": 100,
+            "minimum": 0,
             "forms": [{"href": "properties/water"}]
         },
         "coffeeStatus": {
             "type": "integer",
             "readOnly": true,
             "unit": "%",
+            "maximum": 100,
+            "minimum": 0,
             "forms": [{"href": "properties/coffee"}]
         },
         "binStatus": {
             "type": "integer",
             "readOnly": true,
             "unit": "%",
+            "maximum": 100,
+            "minimum": 0,
             "forms": [{"href": "properties/bin"}]
         }
     },

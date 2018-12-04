@@ -26,8 +26,10 @@ export class VirtualThing {
         this.addPropertyHandlers();
         this.addActionHandlers();
         this.generateEvents();
+    }
 
-        // Expose on the http server
+    // Expose on the server
+    public expose() {
         this.thing.expose();
     }
 

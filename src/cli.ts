@@ -89,9 +89,11 @@ function startVirtualization(config: string, tds: Array<string>) {
         tds.forEach((td) => {
             let id = JSON.parse(td).id;
             if (conf.things && conf.things.hasOwnProperty(id)) { 
-                new VirtualThing(td, thingFactory, conf.things[id]); 
+                let vt = new VirtualThing(td, thingFactory, conf.things[id]);
+                vt.expose();
             } else { 
-                new VirtualThing(td, thingFactory); 
+                let vt = new VirtualThing(td, thingFactory);
+                vt.expose();
             }
         })
     })
