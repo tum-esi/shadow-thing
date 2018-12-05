@@ -11,7 +11,7 @@ export class VirtualThing {
     public readonly thingDescription: WoT.ThingInstance;
     public thing: WoT.ExposedThing;
 
-    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: Object) {
+    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VTconfig) {
 
         this.config = config;
 

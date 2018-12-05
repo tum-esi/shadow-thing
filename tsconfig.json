@@ -11,7 +11,10 @@
 		"noLib": false,
 		"preserveConstEnums": true,
 		"experimentalDecorators": true,
-		"declaration": true
+		"declaration": true,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true
 	},
 	"exclude": [
         "node_modules",
