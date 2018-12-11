@@ -32,6 +32,9 @@ export class DigitalTwin {
         this.addPropertyHandlers();
         this.addActionHandlers();
         this.addEventHandlers();
+
+        // change properties in TD to reflect annotation
+        this.annotateProperties();
     }
 
     public expose() {
@@ -40,6 +43,60 @@ export class DigitalTwin {
 
     public addCustomPropertyReadHandler (property: string, handler: DTCustomHandler) {
         this.customHandlers[property] = handler; 
+    }
+
+
+    // What happens to title / discripton / unit / custom elements ...
+
+    private annotateTD(property: WoT.ThingProperty) {
+        // Schema describing the added accuracy attributes
+        let annotatedProperties = {
+            accuracy: {
+                type: "integer",
+                minimum: 0,
+                maximum: 255
+            },
+            data: {
+                type: property.type,
+                enum: property.enum,
+                const: property.const,
+                oneOf: property.oneOf
+            }
+        }
+
+        property.required = ["accuracy", "data"];
+        property.properties = annotatedProperties;
+        delete property.enum
+        delete property.const
+        delete property.oneOf
+
+        // Change property schema depending on it's original type
+        if (property.type === "object") {
+            property.properties.data.required = property.required;
+            property.properties.data.properties = property.properties;
+            delete property.required;
+            delete property.properties;
+        } else if (property.type === "integer" || property.type === "number") {
+            property.properties.data.maximum = property.maximum;
+            property.properties.data.minimum = property.minimum;
+            delete property.maximum;
+            delete property.minimum;
+        } else if (property.type === "array") {
+            property.properties.data.maxItems = property.maxItems;
+            property.properties.data.minItems = property.minItems;
+            property.properties.data.items = property.items;
+            delete property.maxItems;
+            delete property.minItems;
+            delete property.items
+        }
+
+        property.type = "object";
+    }
+
+    private annotateProperties() {
+        for (let property in this.thing.properties) {
+            this.annotateTD(this.thing.properties[property]);
+        }
     }
 
     private addPropertyReadHandler(property: string) {
