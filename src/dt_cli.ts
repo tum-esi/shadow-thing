@@ -12,8 +12,29 @@ let httpServer = new HttpServer(8080);
 servient.addServer(httpServer);
 servient.addClientFactory(new HttpClientFactory());
 
+function customWaterStatReadHandler(lastValue: any, timestamp: Date) {
+    return new Promise<DTCustomResponse>((resolve, reject) => { 
+        if (lastValue === null || timestamp === null) { resolve({data: 0, accuracy: 0}); }
+        
+        let newValue = {
+            data: 0,
+            accuracy: 0
+        }
+        // for example: every 2 sec between actualtime/timestamp : reduce status by 1%, accuracy by 5pts
+        let dateDelta = Date.now() - timestamp.valueOf();
+        let valueDelta = Math.floor(dateDelta / 2000);
+        let accuracy = 255 - Math.floor((dateDelta / 2000)) * 5;
+
+        (lastValue - valueDelta) < 0 ? newValue.data = 0 : newValue.data = lastValue - valueDelta;
+        accuracy < 0 ? newValue.accuracy = 0 : newValue.accuracy = accuracy;
+
+        resolve(newValue); 
+    })
+}
+
 servient.start().then( 
     (factory) => {
         let digitalTwin = new DigitalTwin(td, factory) 
+        digitalTwin.addCustomPropertyReadHandler("waterStatus", customWaterStatReadHandler);
         digitalTwin.expose()
 })
