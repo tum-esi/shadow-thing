@@ -1,0 +1,37 @@
+{
+  "name": "virtual-thing",
+  "version": "0.2.0",
+  "description": "Creates and deploys a virtual thing based on its TD",
+  "author": "Hassib Belhaj <https://github.com/hasbel>",
+  "license": "MIT",
+  "main": "dist/virtual-thing",
+  "bin": {
+    "virtual-thing": "dist/cli.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tum-ei-esi/virtual-thing"
+  },
+  "devDependencies": {
+    "typescript": "3.0.3",
+    "wot-typescript-definitions": "0.6.0-SNAPSHOT.2",
+    "tslint": "5.11.0",
+    "@types/node": "10.12.5"
+  },
+  "dependencies": {
+    "@node-wot/binding-http": "thingweb.node-wot/packages/binding-http",
+    "@node-wot/core": "thingweb.node-wot/packages/core",
+    "ajv": "6.5.5",
+    "json-schema-faker": "0.4.7"
+  },
+  "scripts": {
+    "clean": "rm -rf thingweb.node-wot && rm -rf node-modules && rm -rf package-lock.json",
+    "preinstall": "npm run clean && git clone https://github.com/hasbel/thingweb.node-wot && cd thingweb.node-wot && npm install && npm run build",
+    "start": "node dist/cli.js",
+    "build": "tsc",
+    "dev": "npm run build && npm run start"
+  }
+}
