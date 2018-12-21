@@ -1,16 +1,21 @@
 import * as WoT from "wot-typescript-definitions";
 
-// When JSON Faker v0.5.0 Stable is realeased, change this to import
-const jsf = require("json-schema-faker");
+const jsf = require("json-schema-faker"); // When JSON Faker v0.5.0 Stable is realeased, change this to TS import
 const Ajv = require('ajv');
 const ajv = new Ajv();
 
-
+/** Class representing a virtual WoT thing */
 export class VirtualThing {
     public readonly config: any;
     public readonly thingDescription: WoT.ThingInstance;
     public thing: WoT.ExposedThing;
 
+    /**
+     * Create a virtual thing
+     * @param thingDescription - A string representing a valid TD
+     * @param factory - A WoTFactory attached to the node WoT servient where the thing should be exposed
+     * @param config - An optional config object.
+     */
     public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VTconfig) {
 
         this.config = config;
@@ -28,12 +33,12 @@ export class VirtualThing {
         this.generateEvents();
     }
 
-    // Expose on the server
+    /** Expose the virtual thing on the servient */
     public expose() {
         this.thing.expose();
     }
 
-    // Validate this.thingDescription
+    /** Validate this.thingDescription */
     private validateThingDescription() {
         if (!this.thingDescription.hasOwnProperty("id")) { 
             console.log("TD ERROR: Thing Description must contain an id."); 
@@ -43,19 +48,9 @@ export class VirtualThing {
             console.log("TD ERROR: Thing Description must contain a name."); 
             process.exit(); 
         }
-
-        // // Read schema from disk
-        // let schema = readFileSync( "../schemas/td-validation-schema.json", "utf-8" )
-
-        // // Validate TD
-        // if (!ajv.validate(schema, this.thingDescription)) { 
-        //     console.log("TD ERROR");
-        //     console.log(validator.validate(schema, this.thingDescription));
-        //     process.exit();
-        // }
     }
 
-    // Add read and write handlers for properties. use JSON Faker
+    /** Add read and write handlers for properties. use JSON Faker */
     private addPropertyHandlers() {
         for (let property in this.thing.properties) {
             this.thing.setPropertyReadHandler(
@@ -96,7 +91,7 @@ export class VirtualThing {
         }
     }
 
-    // Print to the console whenever an action is triggered
+    /** Print to the console whenever an action is triggered */
     private addActionHandlers() {
         for (let action in this.thing.actions) {
             this.thing.setActionHandler(
@@ -118,7 +113,7 @@ export class VirtualThing {
         }
     }
 
-    // Randomly generate events. // TODO: maybe give the user the option to set the generation intervals in config
+    /** Randomly generate events. */
     private generateEvents() {
         for (let event in this.thing.events) {
             // Choose event interval randomly between 5 and 60seconds with 5 seconds increments, unless given in config

@@ -108,12 +108,12 @@ export class DigitalTwin {
                     .then((realResponse) => {
                         // Save received value for future use.
                         this.lastReadValues[property] = { 
-                            value: JSON.parse(realResponse), 
+                            value: realResponse, 
                             timestamp: new Date()
                         }
                         // anontate response with accuracy data
                         let annotatedResponse = { 
-                            data: JSON.parse(realResponse),
+                            data: realResponse,
                             accuracy: 255
                         }
                         resolve(annotatedResponse)
@@ -144,7 +144,7 @@ export class DigitalTwin {
                             this.virtualThing.thing.properties[property].read()
                             .then((fakeResponse) => {
                                 let annotatedResponse = { 
-                                    data: JSON.parse(fakeResponse),
+                                    data: fakeResponse,
                                     accuracy: 0
                                 }
                                 resolve(annotatedResponse)
