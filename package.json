@@ -1,10 +1,11 @@
 {
   "name": "virtual-thing",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Creates and deploys a virtual thing based on its TD",
   "author": "Hassib Belhaj <https://github.com/hasbel>",
   "license": "MIT",
   "main": "dist/virtual-thing",
+  "types": "dist/virtual-thing.d.ts",
   "bin": {
     "virtual-thing": "dist/cli.js"
   },
@@ -22,14 +23,14 @@
     "@types/node": "10.12.5"
   },
   "dependencies": {
-    "@node-wot/binding-http": "thingweb.node-wot/packages/binding-http",
-    "@node-wot/core": "thingweb.node-wot/packages/core",
     "ajv": "6.5.5",
     "json-schema-faker": "0.4.7"
   },
   "scripts": {
-    "clean": "rm -rf thingweb.node-wot && rm -rf node-modules && rm -rf package-lock.json",
-    "preinstall": "npm run clean && git clone https://github.com/hasbel/thingweb.node-wot && cd thingweb.node-wot && npm install && npm run build",
+    "preinstall": "rm -rf thingweb.node-wot && rm -rf node-modules && rm -rf package-lock.json",
+    "get-node-wot": "git clone https://github.com/hasbel/thingweb.node-wot && cd thingweb.node-wot && npm install && npm run build",
+    "install-node-wot": "mkdir -p node_modules/@node-wot && mv thingweb.node-wot/packages/* node_modules/@node-wot/ && rm -rf thingweb.node-wot",
+    "postinstall": "npm run get-node-wot && npm run install-node-wot",
     "start": "node dist/cli.js",
     "build": "tsc",
     "dev": "npm run build && npm run start"
