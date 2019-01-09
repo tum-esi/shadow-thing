@@ -28,6 +28,7 @@ xcode-select --install
 ```
 
 ## How to start a virtual thing
+### Install this package
 Clone this repository and go into it:
 ```
 git clone https://github.com/tum-ei-esi/virtual-thing
@@ -39,14 +40,48 @@ npm install
 npm run build
 ```
 
-### Optional
+### Optional: create a link
 Make the package available on your local machine (as a symlink). You can then use each paket in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
 ```
 npm link
 ```
+This step also allows you to start a virtual-thing by just calling the command `virtual-thing` from anywhere within your computer, instead of having to call `node dist/cli.js` inside this package.
 
+### Start with the default example TD
+To get to know how the virtual-thing module works, you can start a virtual thing based on the default example TD provided.
+`cd` to the root of this module and run:
+```
+node dist/cli.js
+```
+or if you created a link, you can just call
+```
+virtual-thing
+```
+
+### Start a virtual thing based on any TD
+you can create a virtual thing based on any given TD:
+```
+node dist/cli.js path/to/my/example_td.json
+```
+or if you created a symlink:
+```
+virtual-thing path/to/my/example_td.json
+```
+
+### Provide your own configuration file
+By default, the virtual thing will run on the local loopback address `127.0.0.1` and on port `8080`. You can change those defaults by providing your own JSON formatted config file:
+```
+virtual-thing -c path/to/conf.json path/to/my/example_td.json
+```
+the config file also allows you to set intervals to be used for generating events. For example, you can set-up the virtual-thing to generated a specific event every 60seconds. To get more information about this, as well as other configurable values, you can look into the default config file `virtual-thing.conf.json`.
+
+### More Help:
+If you need more help, run:
+```
+virtual-thing --help
+```
 
 ## Useful Links:
 1. [Thing Description Specification](https://w3c.github.io/wot-thing-description/#thing)
-3. [Scripting API Specification](https://w3c.github.io/wot-scripting-api/)
-4. [node-wot implementation of the Scripting API](https://github.com/eclipse/thingweb.node-wot)
+2. [Scripting API Specification](https://w3c.github.io/wot-scripting-api/)
+3. [node-wot implementation of the Scripting API](https://github.com/eclipse/thingweb.node-wot)

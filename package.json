@@ -1,6 +1,6 @@
 {
   "name": "virtual-thing",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Creates and deploys a virtual thing based on its TD",
   "author": "Hassib Belhaj <https://github.com/hasbel>",
   "license": "MIT",
@@ -10,7 +10,9 @@
     "virtual-thing": "dist/cli.js"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "examples/",
+    "virtual-thing.conf.json"
   ],
   "repository": {
     "type": "git",
