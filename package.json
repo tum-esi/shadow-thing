@@ -1,6 +1,6 @@
 {
   "name": "virtual-thing",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Creates and deploys a virtual thing based on its TD",
   "author": "Hassib Belhaj <https://github.com/hasbel>",
   "license": "MIT",
@@ -29,7 +29,7 @@
     "json-schema-faker": "0.4.7"
   },
   "scripts": {
-    "preinstall": "rm -rf thingweb.node-wot && rm -rf node-modules && rm -rf package-lock.json",
+    "preinstall": "rm -rf thingweb.node-wot && rm -rf node_modules && rm -rf package-lock.json",
     "get-node-wot": "git clone https://github.com/hasbel/thingweb.node-wot && cd thingweb.node-wot && npm install && npm run build",
     "install-node-wot": "mkdir -p node_modules/@node-wot && mv thingweb.node-wot/packages/* node_modules/@node-wot/ && rm -rf thingweb.node-wot",
     "postinstall": "npm run get-node-wot && npm run install-node-wot",
