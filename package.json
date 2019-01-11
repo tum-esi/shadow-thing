@@ -1,6 +1,6 @@
 {
   "name": "virtual-thing",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Creates and deploys a virtual thing based on its TD",
   "author": "Hassib Belhaj <https://github.com/hasbel>",
   "license": "MIT",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /********************************************************************************
- * Copyright (c) 2018 Hassib Belhaj & www.esi.ei.tum.de
+ * Copyright (c) 2019 Hassib Belhaj & www.esi.ei.tum.de
  * MIT Licence - see LICENSE
  ********************************************************************************/
 
