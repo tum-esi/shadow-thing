@@ -51,10 +51,15 @@ export class DigitalTwin {
     private annotateTD(property: WoT.ThingProperty) {
         // Schema describing the added accuracy attributes
         let annotatedProperties = {
+            origin: {
+                type: "string",
+                enum: ["thing", "model", "random"]
+            },
             accuracy: {
                 type: "integer",
                 minimum: 0,
-                maximum: 255
+                maximum: 100,
+                unit: "%"
             },
             data: {
                 type: property.type,
@@ -64,7 +69,7 @@ export class DigitalTwin {
             }
         }
 
-        property.required = ["accuracy", "data"];
+        property.required = ["origin", "data"];
         property.properties = annotatedProperties;
         delete property.enum
         delete property.const
@@ -114,7 +119,7 @@ export class DigitalTwin {
                         // anontate response with accuracy data
                         let annotatedResponse = { 
                             data: realResponse,
-                            accuracy: 255
+                            origin: "thing",
                         }
                         resolve(annotatedResponse)
                     })
@@ -133,6 +138,7 @@ export class DigitalTwin {
                             .then((customResponse) => {
                                 let annotatedResponse = { 
                                     data: customResponse.data,
+                                    origin: "model",
                                     accuracy: customResponse.accuracy
                                 }
                                 resolve(annotatedResponse)
@@ -145,7 +151,7 @@ export class DigitalTwin {
                             .then((fakeResponse) => {
                                 let annotatedResponse = { 
                                     data: fakeResponse,
-                                    accuracy: 0
+                                    origin: "random",
                                 }
                                 resolve(annotatedResponse)
                             })
@@ -181,14 +187,15 @@ export class DigitalTwin {
     // Add read and write handlers for properties.
     private addPropertyHandlers() {
         for (let property in this.thing.properties) {
-            this.addPropertyReadHandler(property);
-            // TODO: subscribe to observable.
-
+            // add handlers to readable properties.
+            if (this.thing.properties[property].writeOnly !== true) { 
+                this.addPropertyReadHandler(property);
+            }
             // add handlers to writable properties.
             if (this.thing.properties[property].readOnly !== true) { 
-                this.thing.properties[property].writable = true; // FIXME: This part should be removed when node-wot core is updated.
                 this.addPropertyWriteHandler(property);
             }
+            // TODO: subscribe to observable.
         }
     }
 

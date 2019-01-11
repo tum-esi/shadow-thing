@@ -8,7 +8,7 @@ let jsontd = { id: "de:tum:ei:esi:fp:coffee", name: "Virtual-Coffee-Machine", de
 let td = JSON.stringify(jsontd);
 
 let servient = new Servient();
-let httpServer = new HttpServer(8080);
+let httpServer = new HttpServer({port: 8080});
 servient.addServer(httpServer);
 servient.addClientFactory(new HttpClientFactory());
 
@@ -23,7 +23,7 @@ function customWaterStatReadHandler(lastValue: any, timestamp: Date) {
         // for example: every 2 sec between actualtime/timestamp : reduce status by 1%, accuracy by 5pts
         let dateDelta = Date.now() - timestamp.valueOf();
         let valueDelta = Math.floor(dateDelta / 2000);
-        let accuracy = 255 - Math.floor((dateDelta / 2000)) * 5;
+        let accuracy = 100 - Math.floor((dateDelta / 1000));
 
         (lastValue - valueDelta) < 0 ? newValue.data = 0 : newValue.data = lastValue - valueDelta;
         accuracy < 0 ? newValue.accuracy = 0 : newValue.accuracy = accuracy;

@@ -53,18 +53,20 @@ export class VirtualThing {
     /** Add read and write handlers for properties. use JSON Faker */
     private addPropertyHandlers() {
         for (let property in this.thing.properties) {
-            this.thing.setPropertyReadHandler(
-                property,
-                () => { 
-                    return new Promise( (resolve, reject) => { 
-                        console.log("Property read: " + property); 
-                        resolve(jsf(this.thing.properties[property]));
-                    } );
-                }
-            )
+            // add handlers to readable properties.
+            if (this.thing.properties[property].writeOnly !== true) {
+                this.thing.setPropertyReadHandler(
+                    property,
+                    () => { 
+                        return new Promise( (resolve, reject) => { 
+                            console.log("Property read: " + property); 
+                            resolve(jsf(this.thing.properties[property]));
+                        } );
+                    }
+                )
+            }
             // add handlers to writable properties.
             if (this.thing.properties[property].readOnly !== true) { 
-                this.thing.properties[property].writable = true; // FIXME: This part should be removed when node-wot core is updated.
                 this.thing.setPropertyWriteHandler(
                     property,
                     (received) => { 
