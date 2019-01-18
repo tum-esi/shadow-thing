@@ -1,16 +1,16 @@
 import * as WoT from "wot-typescript-definitions";
-import { VirtualThing } from './virtual-thing';
+import { VirtualThing, VirtualThingConfig} from './virtual-thing';
 
 export class DigitalTwin {
     public realThing: WoT.ConsumedThing;
     public virtualThing: VirtualThing;
     public thing: WoT.ExposedThing;
-    public readonly config: any;
+    public readonly config: VirtualThingConfig;
     public readonly thingDescription: WoT.ThingInstance;
     private customHandlers: { [key: string]: DTCustomHandler };
     private lastReadValues : { [key: string]: {value: any, timestamp: Date} };
 
-    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory) {
+    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
         // Convert TD to an object.
         this.thingDescription = <WoT.ThingInstance> JSON.parse(thingDescription);
 
@@ -19,9 +19,9 @@ export class DigitalTwin {
 
         // Create a virtual thing (name/id have to be different for the servient to work)
         let virtualTD = JSON.parse(thingDescription);
-        virtualTD.name = "Virtual-Thing";
-        virtualTD.id = "de:tum:ei:esi:fp:virt";
-        this.virtualThing = new VirtualThing(JSON.stringify(virtualTD), factory);
+        virtualTD.name = "Virtual-Thing" + Math.floor(Math.random() * 1000);
+        virtualTD.id = "de:tum:ei:esi:fp:virt" + Math.floor(Math.random() * 1000);
+        this.virtualThing = new VirtualThing(JSON.stringify(virtualTD), factory, config);
 
         // Initialise custom handlers and last read values objects
         this.customHandlers = {};
@@ -34,7 +34,7 @@ export class DigitalTwin {
         this.addEventHandlers();
 
         // change properties in TD to reflect annotation
-        this.annotateProperties();
+        this.annotateTD();
     }
 
     public expose() {
@@ -45,10 +45,15 @@ export class DigitalTwin {
         this.customHandlers[property] = handler; 
     }
 
+    private annotateTD() {
+        for (let property in this.thing.properties) {
+            this.annotateAccuracy(this.thing.properties[property]);
+            this.annotateCaching(property);
+        }
+    }
 
     // What happens to title / discripton / unit / custom elements ...
-
-    private annotateTD(property: WoT.ThingProperty) {
+    private annotateAccuracy(property: WoT.ThingProperty) {
         // Schema describing the added accuracy attributes
         let annotatedProperties = {
             origin: {
@@ -71,9 +76,9 @@ export class DigitalTwin {
 
         property.required = ["origin", "data"];
         property.properties = annotatedProperties;
-        delete property.enum
-        delete property.const
-        delete property.oneOf
+        delete property.enum;
+        delete property.const;
+        delete property.oneOf;
 
         // Change property schema depending on it's original type
         if (property.type === "object") {
@@ -92,15 +97,15 @@ export class DigitalTwin {
             property.properties.data.items = property.items;
             delete property.maxItems;
             delete property.minItems;
-            delete property.items
+            delete property.items;
         }
 
         property.type = "object";
     }
 
-    private annotateProperties() {
-        for (let property in this.thing.properties) {
-            this.annotateTD(this.thing.properties[property]);
+    private annotateCaching(property: string) {
+        if (this.config && this.config.twinPropertyCaching && this.config.twinPropertyCaching[property]) {
+            this.thing.properties[property].maxAge = this.config.twinPropertyCaching[property];
         }
     }
 
@@ -109,6 +114,24 @@ export class DigitalTwin {
             property,
             () => {
                 return new Promise((resolve, reject) => {
+                    let maxAge: number;
+                    if (this.config && this.config.twinPropertyCaching && this.config.twinPropertyCaching[property]) { 
+                        maxAge = this.config.twinPropertyCaching[property]
+                    } else if (this.thingDescription.properties[property].maxAge) { 
+                        maxAge = this.thingDescription.properties[property].maxAge
+                    }
+                    if (maxAge && this.lastReadValues[property]) {
+                        let timeDelta = (Date.now() - this.lastReadValues[property].timestamp.valueOf()) / 1000;
+                        if (timeDelta < maxAge) {
+                            resolve(
+                                {
+                                    data: this.lastReadValues[property].value,
+                                    origin: "thing"
+                                }
+                            );
+                            return;
+                        }
+                    }
                     this.realThing.properties[property].read()
                     .then((realResponse) => {
                         // Save received value for future use.
@@ -144,7 +167,7 @@ export class DigitalTwin {
                                 resolve(annotatedResponse)
                             })
                             .catch((customError) => {
-                                reject(customError) // Should this return the custom or the real error ?
+                                reject(customError) // TODO: Should this return the custom or the real error ?
                             })
                         } else {
                             this.virtualThing.thing.properties[property].read()
@@ -220,3 +243,10 @@ export class DigitalTwin {
     }
     
 }
+
+export type DTCustomResponse = {
+    data: any,
+    accuracy: number
+}
+
+export type DTCustomHandler = (lastValue: any, timestamp: Date) => Promise<DTCustomResponse>

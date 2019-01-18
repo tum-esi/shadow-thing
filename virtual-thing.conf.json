@@ -11,8 +11,11 @@
     "things": {
         "de:tum:ei:esi:fp:coffee": {
             "eventIntervals": {
-                "error": 40,
+                "error": 60,
                 "maintenance": 15
+            },
+            "twinPropertyCaching": {
+                "state": 10
             }
         }
     }
