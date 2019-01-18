@@ -73,7 +73,43 @@ By default, the virtual thing will run on the local loopback address `127.0.0.1`
 ```
 virtual-thing -c path/to/conf.json path/to/my/example_td.json
 ```
-the config file also allows you to set intervals to be used for generating events. For example, you can set-up the virtual-thing to generated a specific event every 60seconds. To get more information about this, as well as other configurable values, you can look into the default config file `virtual-thing.conf.json`.
+
+### Change the configuration
+the config file is a JSON file that allows you to configure some aspect of the virtual thing. These include: 
+* HTTP Server parameters
+* Logging levels
+* Event Intervals
+
+The configuration file format looks like this:
+```JSON
+{
+ "servient": {
+     "staticAddress": STATIC,
+     "http": {
+         "port": HPORT,
+ },
+ "log": {
+     "level": LOGLEVEL
+ },
+ "things": {
+     "THING_ID": {
+         "eventIntervals": {
+             "EVENT_ID1": INTERVAL,
+             "EVENT_ID2": INTERVAL
+         },
+         "twinPropertyCaching": {
+             "PROPERTY_ID1": INTERVAL,
+             "PROPERTY_ID2": INTERVAL,
+         }
+     }
+ }
+}
+```
+
+For example, you can set-up the virtual-thing to generated a specific event every 60seconds. 
+You can also set the logging level between 0 and 4:  `{ error: 0, warn: 1, info: 2, log: 3, debug: 4 }` 
+
+To get more information about this, as well as other configurable values, you can look into the default config file `virtual-thing.conf.json`.
 
 ### More Help:
 If you need more help, run:

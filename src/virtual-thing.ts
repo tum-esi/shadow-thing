@@ -16,7 +16,7 @@ export class VirtualThing {
      * @param factory - A WoTFactory attached to the node WoT servient where the thing should be exposed
      * @param config - An optional config object.
      */
-    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VTconfig) {
+    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
 
         this.config = config;
 
@@ -41,11 +41,11 @@ export class VirtualThing {
     /** Validate this.thingDescription */
     private validateThingDescription() {
         if (!this.thingDescription.hasOwnProperty("id")) { 
-            console.log("TD ERROR: Thing Description must contain an id."); 
+            console.error("TD ERROR: Thing Description must contain an id."); 
             process.exit(); 
         }
         if (!this.thingDescription.hasOwnProperty("name")) { 
-            console.log("TD ERROR: Thing Description must contain a name."); 
+            console.error("TD ERROR: Thing Description must contain a name."); 
             process.exit(); 
         }
     }
@@ -59,7 +59,7 @@ export class VirtualThing {
                     property,
                     () => { 
                         return new Promise( (resolve, reject) => { 
-                            console.log("Property read: " + property); 
+                            console.info("Property read: " + property); 
                             resolve(jsf(this.thing.properties[property]));
                         } );
                     }
@@ -104,7 +104,7 @@ export class VirtualThing {
                         reject(new Error("Invalid action input."));
                         return;
                     }
-                    console.log("Action -" + action + "- triggered with input: " + JSON.stringify(received));
+                    console.info("Action -" + action + "- triggered with input: " + JSON.stringify(received));
                     if (typeof this.thingDescription.actions[action].output === "undefined") { 
                         resolve(); 
                     } else { 
@@ -118,18 +118,30 @@ export class VirtualThing {
     /** Randomly generate events. */
     private generateEvents() {
         for (let event in this.thing.events) {
-            // Choose event interval randomly between 5 and 60seconds with 5 seconds increments, unless given in config
+            // Choose event interval randomly between 5 and 60seconds with 5 seconds increments, unless given in config.
             let interval = (this.config && this.config.eventIntervals && this.config.eventIntervals[event]) ?
                 this.config.eventIntervals[event]*1000 : Math.floor(Math.random() * 11) * 5000 + 5000;
-            setInterval( 
-                async () => {
-                    console.log("Emitting event: " + event);
-                    console.log("Next in: " + interval/1000 + "s");
-                    let emittedMessage = this.thingDescription.events[event].data ? jsf(this.thingDescription.events[event].data) : ""
-                    this.thing.events[event].emit(emittedMessage);
-                }, 
-                interval
-            );
+            // if interval is set to 0 in config file, don't generate events.
+            if (this.config.eventIntervals[event] !== 0) {
+                setInterval( 
+                    async () => {
+                        console.info("Emitting event: " + event);
+                        console.info("Next in: " + interval/1000 + "s");
+                        let emittedMessage = this.thingDescription.events[event].data ? jsf(this.thingDescription.events[event].data) : ""
+                        this.thing.events[event].emit(emittedMessage);
+                    }, 
+                    interval
+                );
+            }
         }
+    }
+}
+
+export type VirtualThingConfig = {
+    eventIntervals?: {
+        [key: string]: number
+    },
+    twinPropertyCaching?: {
+        [key: string]: number
     }
 }
