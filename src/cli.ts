@@ -24,6 +24,7 @@ function parseArgs() {
     let configPath = "";
     let tdPaths : Array<string> = [];
     let twinTdPaths : Array<string> = [];
+    let modelPaths: Array<string> = [];
 
     if (process.argv.length > 2) {
         let argv = process.argv.slice(2);
@@ -36,7 +37,8 @@ function parseArgs() {
 
             } else if (digitalTwinFlag) {
                 digitalTwinFlag = false;
-                twinTdPaths.push(arg);
+                modelPaths.push(arg.split("::")[1]);
+                twinTdPaths.push(arg.split("::")[0]);
 
             } else if (arg.match(/^(-t|--twin)$/i)) {
                 digitalTwinFlag = true;
@@ -59,13 +61,13 @@ function parseArgs() {
 
     // if no arguments are given, ask user if we should use the default paths.
     if ((tdPaths.length === 0 && twinTdPaths.length === 0) || configPath === "") {
-        confirmDefaultPaths(configPath, tdPaths, twinTdPaths);
+        confirmDefaultPaths(configPath, tdPaths, twinTdPaths, modelPaths);
     } else {
-        readFiles(configPath, tdPaths, twinTdPaths);
+        readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
     }
 }
 
-function confirmDefaultPaths(configPath: string, tdPaths: Array<string>, twinTdPaths: Array<string>) {
+function confirmDefaultPaths(configPath: string, tdPaths: string[], twinTdPaths: string[], modelPaths: string[]) {
     const readline = createInterface({
         input: process.stdin,
         output: process.stdout
@@ -78,11 +80,11 @@ function confirmDefaultPaths(configPath: string, tdPaths: Array<string>, twinTdP
 
     if (tdPaths.length === 0 && twinTdPaths.length === 0) { 
         readline.question( 
-            "No Thing Description given. Do you want to use the default TD? (yes/no) ", 
+            "No Thing Description given. Start a virtual thing with the default TD? (yes/no) ", 
             (answer) => {
                 if (answer.match(/^(yes|y)$/i)) { 
                     tdPaths = [join(__dirname, defaultTd)];
-                    readFiles(configPath, tdPaths, twinTdPaths);
+                    readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
                 } else {
                     console.error(`Virtual thing can not start without a Thing Description.
                     For more informations, run: virtual-thing --help`);
@@ -92,12 +94,12 @@ function confirmDefaultPaths(configPath: string, tdPaths: Array<string>, twinTdP
             }
         );
     } else {
-        readFiles(configPath, tdPaths, twinTdPaths);
+        readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
     }
 }
 
 /** Parse command line arguments and start a virtual thing for each given TD */
-function readFiles(configPath: string, tdPaths: Array<string>, twinTdPaths: Array<string>) {
+function readFiles(configPath: string, tdPaths: string[], twinTdPaths: string[], modelPaths: string[]) {
     let readPromises: Array<Promise<string>> = [];
 
     // Async read of config and TD files from disk
@@ -124,21 +126,14 @@ function readFiles(configPath: string, tdPaths: Array<string>, twinTdPaths: Arra
                 resolve(td);
             });
         }) );
-        // If model is given, read it as well.
-        readPromises.push( new Promise((resolve, reject) => {
-            readFile( td, "utf-8", (err, td) => {
-                if (err) { console.error(err); process.exit(); }
-                resolve(td);
-            });
-        }) );
     });
 
     Promise.all(readPromises).then( (args) => {
-        startVirtualization(args[0], args.slice(1, tdPaths.length+1), args.slice(tdPaths.length+1)) 
+        startVirtualization(args[0], args.slice(1, tdPaths.length+1), args.slice(tdPaths.length+1), modelPaths) 
     })
 }
 
-function startVirtualization(config: string, things: Array<string>, twins: Array<string>) {
+function startVirtualization(config: string, things: string[], twins: string[], models: string[]) {
     let conf = JSON.parse(config);
 
     // Set logging level according to config
@@ -177,14 +172,19 @@ function startVirtualization(config: string, things: Array<string>, twins: Array
             }
         })
         twins.forEach((td) => {
+            let dt: DigitalTwin;
             let id = JSON.parse(td).id;
             if (conf.things && conf.things.hasOwnProperty(id)) { 
-                let dt = new DigitalTwin(td, thingFactory, conf.things[id]);
-                dt.expose();
+                dt = new DigitalTwin(td, thingFactory, conf.things[id]);
             } else { 
-                let dt = new DigitalTwin(td, thingFactory);
-                dt.expose();
+                dt = new DigitalTwin(td, thingFactory);
             }
+            let modelPath = models.pop();
+            if (modelPath) {
+                let model = require(join(process.cwd(), modelPath));
+                model.addTwinModel(dt);
+            }
+            dt.expose()
         })
     })
     .catch((err) => {
@@ -224,20 +224,22 @@ function setLogLevel(config: any) {
 function printHelp() {
     console.info(`
 Usage: virtual-thing [options] [TD]...
+
+Options:
+-c, --configfile <file>         load configuration from specified file
+-t, --twin <file>[::<model>]    load the next TD file in digital-twin mode
+                                (if a model file is given, it is loaded)
+-h, --help                      show this help
+-v, --version                   display virtual-thing version
+
+examples:
 virtual-thing
 virtual-thing examples/td/coffee_machine_td.json
 virtual-thing -t examples/td/coffee_machine_td.json
 virtual-thing -c virtual-thing.conf.json examples/td/coffee_machine_td.json
 
-Create a Virtual Thing based on a given Thing Description.
-If no TD is given, the default TD in examples/td/coffee_machine_td.json is loaded.
-If the config file 'virtual-thing.conf.json' exists, that configuration is applied.
-
-Options:
--c, --configfile <file>        load configuration from specified file
--t, --twin <file>[::<model>]   load the next TD file in digital-twin mode
--h, --help                     show this help
--v, --version                  display virtual-thing version
+If no TD is given, the default TD examples/td/coffee_machine_td.json is used.
+If the file 'virtual-thing.conf.json' exists, it is used for configuration.
 
 virtual-thing.conf.json syntax:
 {
@@ -261,5 +263,16 @@ virtual-thing.conf.json syntax:
          }
      }
  }
-}`);
+}
+virtual-thing.conf.json fields:
+  ---------------------------------------------------------------------------
+  All entries are optional
+  ---------------------------------------------------------------------------
+  STATIC     : string with hostname or IP literal for static address config
+  HPORT      : integer defining the HTTP listening port
+  LOGLEVEL   : integer from 0 to 4. A higher level means more logging output
+                    ( error: 0, warn: 1, info: 2, log: 3, debug: 4 )
+  THING_IDx  : string with the "id" of the thing be configured. must match TD
+  EVENT_IDx  : string with the name of an event to be configured
+  INTERVAL   : integer to be interpred as a number of seconds.`);
 }
