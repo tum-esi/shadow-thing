@@ -1,133 +1,147 @@
 import * as WoT from "wot-typescript-definitions";
-import { Servient, Helpers } from "@node-wot/core";
-import { HttpServer } from "@node-wot/binding-http";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { HttpsClientFactory } from "@node-wot/binding-http";
 
-// When JSON Faker v0.5.0 Stable is realeased, change this to import
-const jsf = require("json-schema-faker");
+const jsf = require("json-schema-faker"); // When JSON Faker v0.5.0 Stable is realeased, change this to TS import
+const Ajv = require('ajv');
+const ajv = new Ajv();
 
-
-export class VirtualThing extends Servient {
+/** Class representing a virtual WoT thing */
+export class VirtualThing {
     public readonly config: any;
     public readonly thingDescription: WoT.ThingInstance;
     public thing: WoT.ExposedThing;
 
-    public constructor(thingDescription: WoT.ThingDescription, config?: any) {
-        super();
+    /**
+     * Create a virtual thing
+     * @param thingDescription - A string representing a valid TD
+     * @param factory - A WoTFactory attached to the node WoT servient where the thing should be exposed
+     * @param config - An optional config object.
+     */
+    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
 
-        // init config - TODO: config is actually being ignored. Add config handling.
-        this.config = {
-            servient: {
-                staticAddress: "127.0.0.1"
-            },
-            log: {
-                level: 2
-            },
-            http: {
-                port: 8080
-            }
-        }
+        this.config = config;
 
-        // display
-        console.info("Servient configured with");
-        console.dir(this.config);
-
-        // apply config
-        if (typeof this.config.servient.staticAddress === "string") {
-            Helpers.setStaticAddress(this.config.servient.staticAddress);
-        }
-
-        if (this.config.http !== undefined) {
-            let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
-            this.addServer(httpServer);
-        }
-
-        // Convert TD to an object and validate it.
+        // Convert TD to an object and validate it. TODO: validate using JSON Schema
         this.thingDescription = <WoT.ThingInstance> JSON.parse(thingDescription);
+        this.validateThingDescription();
+
+        // Generate an ExposedThing
+        this.thing = factory.produce(JSON.stringify(this.thingDescription));
+
+        // Add property and action handlers
+        this.addPropertyHandlers();
+        this.addActionHandlers();
+        this.generateEvents();
+    }
+
+    /** Expose the virtual thing on the servient */
+    public expose() {
+        this.thing.expose();
+    }
+
+    /** Validate this.thingDescription */
+    private validateThingDescription() {
         if (!this.thingDescription.hasOwnProperty("id")) { 
-            console.log("TD ERROR: Thing Description must contain an id."); 
+            console.error("TD ERROR: Thing Description must contain an id."); 
             process.exit(); 
         }
         if (!this.thingDescription.hasOwnProperty("name")) { 
-            console.log("TD ERROR: Thing Description must contain a name."); 
+            console.error("TD ERROR: Thing Description must contain a name."); 
             process.exit(); 
         }
-
-        // Start HTTP servers
-        this.addClientFactory(new HttpClientFactory(this.config.http));
-        this.addClientFactory(new HttpsClientFactory(this.config.http));
-
-        // Start virtual thing
-        super.start()
-        .then((myFactory) => {
-            this.thing = myFactory.produce(JSON.stringify(this.thingDescription));
-            this.thing.expose()
-        })
-        .then(() => {
-            // Add property and action handlers
-            this.addPropertyHandlers();
-            this.addActionHandlers();
-            this.generateEvents();
-        });
     }
 
-    // Add read and write handlers for properties. use JSON Faker
+    /** Add read and write handlers for properties. use JSON Faker */
     private addPropertyHandlers() {
         for (let property in this.thing.properties) {
-            this.thing.setPropertyReadHandler(
-                property,
-                () => { 
-                    return new Promise( (resolve, reject) => { 
-                        console.log("Property read: " + property); 
-                        resolve(jsf(this.getPropertySchema(property)));
-                    } );
-                }
-            )
-            if (this.thing.properties[property].writable) { console.log("WARNING: property write handler needs to be set."); }
+            // add handlers to readable properties.
+            if (this.thing.properties[property].writeOnly !== true) {
+                this.thing.setPropertyReadHandler(
+                    property,
+                    () => { 
+                        return new Promise( (resolve, reject) => { 
+                            console.info("Property read: " + property); 
+                            resolve(jsf(this.thing.properties[property]));
+                        } );
+                    }
+                )
+            }
+            // add handlers to writable properties.
+            if (this.thing.properties[property].readOnly !== true) { 
+                this.thing.setPropertyWriteHandler(
+                    property,
+                    (received) => { 
+                        return new Promise( (resolve, reject) => { 
+                            // Validate input
+                            if (!ajv.validate(this.thingDescription.properties[property], received)) { 
+                                console.warn("WARNING: Invalid input received for property: " + property);
+                                reject(new Error("Invalid property data."));
+                                return;
+                            }
+
+                            // Update the read handler to always return the written value.
+                            this.thing.setPropertyReadHandler(
+                                property, 
+                                () => {
+                                    return new Promise((resolve, reject) => { resolve(received); });
+                                } 
+                            );
+                            resolve();
+                        });
+                    }
+                )
+            }
         }
     }
 
-    // Print to the console whenever an action is triggered
+    /** Print to the console whenever an action is triggered */
     private addActionHandlers() {
         for (let action in this.thing.actions) {
             this.thing.setActionHandler(
                 action, 
-                (received) => { return new Promise( (resolve, reject) => { console.log("Action Triggered: " + action); resolve(); } ); }
+                (received) => { return new Promise( (resolve, reject) => { 
+                    if (this.thingDescription.actions[action].input && !ajv.validate(this.thingDescription.actions[action].input, received)) { 
+                        console.warn("WARNING: Invalid input received for action: " + action);
+                        reject(new Error("Invalid action input."));
+                        return;
+                    }
+                    console.info("Action -" + action + "- triggered with input: " + JSON.stringify(received));
+                    if (typeof this.thingDescription.actions[action].output === "undefined") { 
+                        resolve(); 
+                    } else { 
+                        resolve(jsf(this.thingDescription.actions[action].output)); 
+                    } 
+                } ); }
             );
         }
     }
 
-    // Randomly generate events. // TODO: maybe give the user the option to set the generation intervals in config
+    /** Randomly generate events. */
     private generateEvents() {
         for (let event in this.thing.events) {
-            // Interval between 0 and 60seconds, with 5 seconds increments
-            let interval = Math.floor(Math.random() * 12) * 5000;
-            setInterval( 
-                async () => {
-                    console.log("Emitting event: " + event);
-                    console.log("Next in: " + interval/1000 + "s");
-                    let emittedMessage = this.thingDescription.events[event].data ? jsf(this.thingDescription.events[event].data) : ""
-                    this.thing.events[event].emit(emittedMessage);
-                }, 
-                interval
-            );
+            // Choose event interval randomly between 5 and 60seconds with 5 seconds increments, unless given in config.
+            let interval = (this.config && this.config.eventIntervals && this.config.eventIntervals[event]) ?
+                this.config.eventIntervals[event]*1000 : Math.floor(Math.random() * 11) * 5000 + 5000;
+            // if interval is set to 0 in config file, don't generate events.
+            if (this.config.eventIntervals[event] !== 0) {
+                setInterval( 
+                    async () => {
+                        console.info("Emitting event: " + event);
+                        console.info("Next in: " + interval/1000 + "s");
+                        let emittedMessage = this.thingDescription.events[event].data ? jsf(this.thingDescription.events[event].data) : ""
+                        this.thing.events[event].emit(emittedMessage);
+                    }, 
+                    interval
+                );
+            }
         }
     }
+}
 
-    // Return a JSON Schema that describes a given property
-    private getPropertySchema(property: string): object {
-        let schema: {[key: string]: any} = {
-            type: this.thingDescription.properties[property].type,
-        };
-        if (this.thingDescription.properties[property].hasOwnProperty("const")) {
-            schema.enum = [this.thingDescription.properties[property].const]
-            return schema;
-        }
-        if (this.thingDescription.properties[property].hasOwnProperty("enum")) {
-            schema.enum = this.thingDescription.properties[property].enum
-            return schema;
-        }
-        return schema;        
+export type VirtualThingConfig = {
+    eventIntervals?: {
+        [key: string]: number
+    },
+    twinPropertyCaching?: {
+        [key: string]: number
     }
 }

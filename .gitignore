@@ -1,6 +1,9 @@
 # Logs
 *.log
 
+# IDEs
+.vscode/
+
 # Dependency directories
 node_modules
 

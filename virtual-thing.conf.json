@@ -1,11 +1,22 @@
 {
     "servient": {
-        "staticAddress": "127.0.0.1"
+        "staticAddress": "127.0.0.1",
+        "http": {
+            "port": 8080
+        }
     },
     "log": {
         "level": 2
     },
-    "http": {
-        "port": 8080
+    "things": {
+        "de:tum:ei:esi:fp:coffee": {
+            "eventIntervals": {
+                "error": 60,
+                "maintenance": 15
+            },
+            "twinPropertyCaching": {
+                "state": 10
+            }
+        }
     }
 }
