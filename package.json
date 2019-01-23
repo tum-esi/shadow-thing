@@ -43,8 +43,7 @@
     "install-node-wot": "mkdir -p node_modules/@node-wot && mv thingweb.node-wot/packages/* node_modules/@node-wot/ && rm -rf thingweb.node-wot",
     "postinstall": "npm run get-node-wot && npm run install-node-wot",
     "start": "node dist/cli.js",
-    "start-twin": "node dist/cli.js -t Coffee/coffee_machine_td.json",
-    "build": "tsc",
-    "dev": "npm run build && npm run start"
+    "start-twin": "node dist/cli.js -t examples/td/coffee_machine_td_8090.json",
+    "build": "tsc"
   }
 }
