@@ -126,7 +126,7 @@ this will tell the virtual thing to start in digital twin mode. To do so, it wil
 
 it is also possible for the digital twin to be used as caching server for load balancing purposes. This is configurable in the config file.
 
-### How to add a kodel to your digital twin
+### How to add a model to your digital twin
 It is possible to use a model of your real thing in digital twin mode. This means that when the real thing is not reachable, the digital twin will use your model to create a response instead:
 ```
 virtual-thing --twin path/to/real-thing/td.json::path/to/model.js
