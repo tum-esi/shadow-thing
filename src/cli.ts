@@ -86,8 +86,8 @@ function confirmDefaultPaths(configPath: string, tdPaths: string[], twinTdPaths:
                     tdPaths = [join(__dirname, defaultTd)];
                     readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
                 } else {
-                    console.error(`Virtual thing can not start without a Thing Description.
-                    For more informations, run: virtual-thing --help`);
+                    console.error("Virtual thing can not start without a Thing Description. \n" +
+                    "For more informations, run: virtual-thing --help");
                     process.exit();
                 }
                 readline.close();

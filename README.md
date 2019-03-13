@@ -126,13 +126,13 @@ this will tell the virtual thing to start in digital twin mode. To do so, it wil
 
 it is also possible for the digital twin to be used as caching server for load balancing purposes. This is configurable in the config file.
 
-### How to add a kodel to your digital twin
-It is possible to use a model of your real thing in digital twin mode. This means that when the real thing is not reachable, the digital twin will use your model to create a response instead:
+### How to add a model to your digital twin
+It is possible to use a model of your real thing in digital twin mode. This means that when the real thing is not reachable, the digital twin will use the model to create a response instead:
 ```
 virtual-thing --twin path/to/real-thing/td.json::path/to/model.js
 ```
 
-Upon reception of property read request, and whenever the real thing is unreachable, the digital twin will call on your model and pass on the last received property value, as well as its timestamp to it. Based on those values, your model can return an approximate value, as well as an accuracy annotation ( from 0 to 100% ). This data is then sent as a response to the received request.
+Upon reception of a property read request, and whenever the real thing is unreachable, the digital twin will call on your model and pass on the last received property value, as well as its timestamp to it. Based on those values, your model can return an approximate value, as well as an accuracy annotation ( from 0 to 100% ). This data is then sent as a response to the received request.
 
 the model has to conform to a specific format. An example is provided under `examples/twin-models/coffee_machine_model.js`
 

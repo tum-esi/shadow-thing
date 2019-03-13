@@ -17,6 +17,10 @@ export class DigitalTwin {
         // Consume thing
         this.realThing = factory.consume(thingDescription);
 
+        // Remove event generation intervals from config
+        this.config = config
+        this.removeVirtualEventIntervals()
+
         // Create a virtual thing (name/id have to be different for the servient to work)
         let virtualTD = JSON.parse(thingDescription);
         virtualTD.name = "Virtual-Thing" + Math.floor(Math.random() * 1000);
@@ -106,6 +110,16 @@ export class DigitalTwin {
     private annotateCaching(property: string) {
         if (this.config && this.config.twinPropertyCaching && this.config.twinPropertyCaching[property]) {
             this.thing.properties[property].maxAge = this.config.twinPropertyCaching[property];
+        }
+    }
+
+    private removeVirtualEventIntervals() {
+        if (this.config && this.config.eventIntervals) {
+            for ( let property in this.config.eventIntervals) {
+                if (this.config.eventIntervals.hasOwnProperty(property)) {
+                    this.config.eventIntervals[property] = 0
+                }
+            }
         }
     }
 
@@ -207,6 +221,20 @@ export class DigitalTwin {
         )
     }
 
+    private subscribeToEvent(event: string) {
+        this.realThing.events[event].subscribe(
+            (realData) => { 
+                this.thing.events[event].emit(realData); 
+                console.info("Forwarding emitted event: " + event);
+            },
+            (realError) => { 
+                console.debug("Subscription failed with error: " + JSON.stringify(realError));
+                console.debug("Will try again in 10 seconds...")
+                setTimeout(() => { this.subscribeToEvent(event); }, 10000);  //FIXME: When node-wot is fixed, move this to finally()
+            }
+        )
+    }
+
     // Add read and write handlers for properties.
     private addPropertyHandlers() {
         for (let property in this.thing.properties) {
@@ -235,10 +263,7 @@ export class DigitalTwin {
 
     private addEventHandlers() {
         for (let event in this.thingDescription.events) {
-            this.realThing.events[event].subscribe(
-                (realData) => { this.thing.events[event].emit(realData); },
-                (RealError) => { this.thing.events[event].emit(RealError); } // FIXME: should we emit an error with a 200 status ?
-            )
+            this.subscribeToEvent(event);
         }
     }
     
