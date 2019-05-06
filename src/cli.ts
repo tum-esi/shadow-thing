@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /********************************************************************************
- * Copyright (c) 2019 Hassib Belhaj & www.esi.ei.tum.de
+ * Copyright (c) 2019 Hassib Belhaj - www.esi.ei.tum.de
  * MIT Licence - see LICENSE
  ********************************************************************************/
 
 import { VirtualThing } from "./virtual-thing"
 import { DigitalTwin } from "./digital-twin"
 import { Servient, Helpers } from "@node-wot/core";
-import { HttpServer, HttpClientFactory } from "@node-wot/binding-http";
+import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
+import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
 import { readFile } from "fs";
 import { join } from "path";
 import { createInterface } from "readline";
@@ -86,8 +87,8 @@ function confirmDefaultPaths(configPath: string, tdPaths: string[], twinTdPaths:
                     tdPaths = [join(__dirname, defaultTd)];
                     readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
                 } else {
-                    console.error(`Virtual thing can not start without a Thing Description.
-                    For more informations, run: virtual-thing --help`);
+                    console.error("Virtual thing can not start without a Thing Description. \n" +
+                    "For more informations, run: virtual-thing --help");
                     process.exit();
                 }
                 readline.close();
@@ -152,11 +153,18 @@ function startVirtualization(config: string, things: string[], twins: string[], 
 
     if (conf.servient.http !== undefined) {
         let httpServer = (typeof conf.servient.http.port === "number") ? new HttpServer(conf.servient.http) : new HttpServer();
+        let coapServer = (typeof conf.servient.coap.port === "number") ? new CoapServer(conf.servient.coap.port) : new CoapServer();
         servient.addServer(httpServer);
+        servient.addServer(coapServer);
     }
 
     // Add clientFactory to servient if twins are present
-    if (twins.length > 0) {servient.addClientFactory(new HttpClientFactory());}
+    if (twins.length > 0) {
+        servient.addClientFactory(new HttpClientFactory());
+        servient.addClientFactory(new HttpsClientFactory());
+        servient.addClientFactory(new CoapClientFactory());
+        servient.addClientFactory(new CoapsClientFactory());
+    }
 
     // Start Servient, virtual things and digital twins
     servient.start()
@@ -246,7 +254,11 @@ virtual-thing.conf.json syntax:
  "servient": {
      "staticAddress": STATIC,
      "http": {
-         "port": HPORT,
+         "port": PORT
+     },
+     "coap": {
+         "port": PORT
+     }
  },
  "log": {
      "level": LOGLEVEL
@@ -269,7 +281,7 @@ virtual-thing.conf.json fields:
   All entries are optional
   ---------------------------------------------------------------------------
   STATIC     : string with hostname or IP literal for static address config
-  HPORT      : integer defining the HTTP listening port
+  PORT      : integer defining the HTTP/COAP listening port
   LOGLEVEL   : integer from 0 to 4. A higher level means more logging output
                     ( error: 0, warn: 1, info: 2, log: 3, debug: 4 )
   THING_IDx  : string with the "id" of the thing be configured. must match TD
