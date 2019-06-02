@@ -3,6 +3,9 @@
         "staticAddress": "127.0.0.1",
         "http": {
             "port": 8080
+        },
+        "coap": {
+            "port": 5683
         }
     },
     "log": {
@@ -11,8 +14,11 @@
     "things": {
         "de:tum:ei:esi:fp:coffee": {
             "eventIntervals": {
-                "error": 40,
+                "error": 60,
                 "maintenance": 15
+            },
+            "twinPropertyCaching": {
+                "state": 10
             }
         }
     }
