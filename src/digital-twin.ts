@@ -1,3 +1,4 @@
+/*
 import * as WoT from "wot-typescript-definitions";
 import { VirtualThing, VirtualThingConfig} from './virtual-thing';
 
@@ -275,3 +276,4 @@ export type DTCustomResponse = {
 }
 
 export type DTCustomHandler = (lastValue: any, timestamp: Date) => Promise<DTCustomResponse>
+*/

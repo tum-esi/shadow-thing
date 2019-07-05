@@ -12,7 +12,7 @@
         "level": 2
     },
     "things": {
-        "de:tum:ei:esi:fp:coffee": {
+        "http://example.org/coffee_machine01": {
             "eventIntervals": {
                 "error": 60,
                 "maintenance": 15
