@@ -122,7 +122,7 @@ export class VirtualThing {
             let interval = (this.config && this.config.eventIntervals && this.config.eventIntervals[event]) ?
                 this.config.eventIntervals[event]*1000 : Math.floor(Math.random() * 11) * 5000 + 5000;
             // if interval is set to 0 in config file, don't generate events.
-            if (this.config.eventIntervals[event] !== 0) {
+            if (this.config && this.config.eventIntervals && this.config.eventIntervals[event] !== 0) {
                 setInterval( 
                     async () => {
                         console.info("Emitting event: " + event);
