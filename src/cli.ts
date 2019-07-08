@@ -6,7 +6,6 @@
 
 import { readFile , readFileSync } from "fs";
 import { join } from "path";
-import { createInterface } from "readline";
 
 import * as WoT from "wot-typescript-definitions";
 import { Servient, Helpers } from "@node-wot/core";
@@ -17,6 +16,7 @@ import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/bin
 
 import * as winston from "winston";
 
+import { defaultQuery, configurationQuery }  from "./user-query";
 import { VirtualThing } from "./virtual-thing";
 //import { DigitalTwin } from "./digital-twin";
 
@@ -27,12 +27,6 @@ var ajv = new Ajv();
 var schemaLocation = join(__dirname, '..', 'config-json-schema-validation.json');
 var schema = readFileSync(schemaLocation);
 ajv.addSchema(schema, "config");
-
-// Utilized for queries using rl.question
-const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout
-}); 
 
 // Default values for configuration
 const DEFAULT_LOG_LEVEL = 2;
@@ -117,17 +111,6 @@ const parseArgs = (confPath: string, modPaths: Array<string>, twinPaths: Array<s
     });
 }
 
-const query = (message, pattern) => {
-    rl.question(message, (answer) => {
-        if(answer.match(pattern)){
-            return answer;
-        }else{
-            query(message, pattern);
-        }
-    });
-}
-
-
 const confirmConfiguration = async (confPath: string, tdPaths: Array<string>, twinPaths: Array<string>) => {
     return new Promise( (resolve, reject) => {
         if(confPath){
@@ -143,19 +126,14 @@ const confirmConfiguration = async (confPath: string, tdPaths: Array<string>, tw
             generateDefaultConfig(tdPaths, twinPaths).then( (defConf) => {
                 console.log("Configuration file not specified. Default configuration file generated : ");
                 console.log(JSON.stringify(defConf, null, 4));
-                rl.question("Use default configuration? (yes/no) ",
-                    (answer) => {
-                        if(answer.match(/^(yes|y)$/i)){
-                            console.info("Default configuration loaded.");
-                            resolve(defConf);
-                        } else if(answer.match(/^(no|n)$/i)) {
-                            
-                        } else {
-                        
-                        }
+                defaultQuery().then( (response: string) => {
+                    if(response === "yes"){
+                        resolve(defConf);
+                    }else{
+                        Promise.all(readTdFiles(tdPaths)).then( (args) => resolve(configurationQuery(args.map( (arg) => JSON.parse(arg) ))) );
                     }
-                );
-            })
+                });
+            });
         }
     });    
 }
@@ -225,7 +203,7 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
             }
 
         });
-        console.log(protocols);
+        
         // Configuration for detected protocols
         if(protocols.has("http")){
             let httpConfig: HttpConfig = {
@@ -440,12 +418,14 @@ var modelPaths: Array<string> = [];
 var twinTdPaths: Array<string> = [];
 var tdPaths: Array<string> = [];
 
+// Main logic of script
 if(process.argv.length > 2){
     parseArgs(configPath, modelPaths, twinTdPaths, tdPaths);
 }
 
 confirmConfiguration(configPath, tdPaths, twinTdPaths)
 .then((config: ConfigFile) => {
+    console.info(config);
     Promise.all(readTdFiles(tdPaths))
     .then( (args: WoT.ThingDescription[]) => {
         let tdList: WoT.ThingInstance[] = args.map(arg => JSON.parse(arg));
