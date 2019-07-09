@@ -12,19 +12,20 @@ import { Servient, Helpers } from "@node-wot/core";
 import { HttpConfig, HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
-//import { MqttBrokerServer, MqttClientFactory} from "@node-wot/binding-mqtt";
+import { MqttBrokerServer, MqttClientFactory} from "@node-wot/binding-mqtt";
 
 import * as winston from "winston";
 
 import { defaultQuery, configurationQuery }  from "./user-query";
 import { VirtualThing } from "./virtual-thing";
-//import { DigitalTwin } from "./digital-twin";
+import { DigitalTwin } from "./digital-twin";
 
 const Ajv = require('ajv');
+const net = require('net');
 
 // Initialize Ajv and add JSON schema for configuration file validation
 var ajv = new Ajv();
-var schemaLocation = join(__dirname, '..', 'config-json-schema-validation.json');
+var schemaLocation = join(__dirname, '..', 'validation-schemas' ,'config-json-schema-validation.json');
 var schema = readFileSync(schemaLocation);
 ajv.addSchema(schema, "config");
 
@@ -37,10 +38,33 @@ const DEFAULT_TWIN_CACHING = 10;
 const DEFAULT_HTTP_PORT = 8080;
 const DEFAULT_COAP_PORT = 5683;
 
+const DEFAULT_MQTT_CONFIG = {
+    local: {
+        port: 1883
+    }
+};
 
 interface CoapConfig{
     port?: number;
+
     address?: string;
+}
+
+interface MqttConfig{
+    local?: MqttLocalConfig;
+
+    online?: MqttOnlineConfig;
+}
+
+interface MqttOnlineConfig{
+    uri?: string;
+    username?: string;
+    password?: string;
+    clientId?: string;
+}
+
+interface MqttLocalConfig{
+    port: number;
 }
 
 interface ServientConfig{
@@ -49,6 +73,8 @@ interface ServientConfig{
     http?: HttpConfig;
 
     coap?: CoapConfig;
+
+    mqtt?: MqttConfig;
 }
 
 interface LogConfig{
@@ -218,6 +244,11 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
             }
             config.servient.coap = coapConfig;
         }
+
+        if(protocols.has("mqtt")){
+            config.servient.mqtt = DEFAULT_MQTT_CONFIG;
+        }
+
         return config;
     });
 }
@@ -246,6 +277,15 @@ const readConfigFile = async (confPath: string) => {
             }
             resolve(data);
         });
+    });
+}
+
+const startLocalMqttServer = (port: number) => {
+    var aedes = require('aedes')();
+    var server = net.createServer(aedes.handle);
+
+    server.listen(port, () => {
+        console.log('Local MQTT Broker listening on port', port);
     });
 }
 
@@ -286,6 +326,19 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
         }
     }
 
+    if (config.servient.mqtt) {
+        let mqttConfig = config.servient.mqtt;
+        let mqttServer : MqttBrokerServer;
+
+        if(mqttConfig.online){
+            mqttServer = new MqttBrokerServer(mqttConfig.online.uri, mqttConfig.online.username, mqttConfig.online.password, mqttConfig.online.clientId);
+        } else {
+            mqttServer = new MqttBrokerServer(config.servient.staticAddress + ':' + mqttConfig.local.port);
+        }
+        servient.addServer(mqttServer);
+        servient.addClientFactory(new MqttClientFactory());
+    }
+
     // Start Servient, virtual things and digital twins
     servient.start()
     .then((thingFactory) => {
@@ -300,12 +353,11 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
                 vt.expose();
             }
         });
-        /*
         twins.forEach((td) => {
             let dt: DigitalTwin;
-            let id = JSON.parse(td).id;
-            if (conf.things && conf.things.hasOwnProperty(id)) { 
-                dt = new DigitalTwin(td, thingFactory, conf.things[id]);
+            let id = td.id;
+            if (config.things && config.things.hasOwnProperty(id)) { 
+                dt = new DigitalTwin(td, thingFactory, config.things[id]);
             } else { 
                 dt = new DigitalTwin(td, thingFactory);
             }
@@ -315,7 +367,7 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
                 model.addTwinModel(dt);
             }
             dt.expose();
-        });*/
+        });
     })
     .catch((err) => {
         console.error(err);
@@ -425,7 +477,9 @@ if(process.argv.length > 2){
 
 confirmConfiguration(configPath, tdPaths, twinTdPaths)
 .then((config: ConfigFile) => {
-    console.info(config);
+    if(config.servient.mqtt && config.servient.mqtt.local){
+        startLocalMqttServer(config.servient.mqtt.local.port);
+    }
     Promise.all(readTdFiles(tdPaths))
     .then( (args: WoT.ThingDescription[]) => {
         let tdList: WoT.ThingInstance[] = args.map(arg => JSON.parse(arg));

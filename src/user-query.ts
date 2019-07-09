@@ -21,7 +21,7 @@ let protocolTypeQuery = {
     type: 'checkbox',
     message: 'Select desired protocols : ',
     name: 'protocols',
-    choices: [ { name: "http" }, { name: "coap"} ],
+    choices: ["http", "coap", "mqtt"],
     validate: (answer: Array<object>) => {
         if(answer.length < 1){
             return 'Select at least one protocol!';
@@ -44,6 +44,57 @@ let portQuery = {
         }
         return true;
     }
+}
+
+interface mqttBrokerChoiceResponse {
+    broker: string
+}
+
+let mqttBrokerChoiceQuery = {
+    type: 'list',
+    name: 'broker',
+    message: 'Do you want to use an online broker or generate a local broker?',
+    choices: ["online", "local"]
+}
+
+interface mqttBrokerURIResponse {
+    uri: string
+}
+
+let mqttBrokerURIQuery = {
+    type: 'input',
+    name: 'uri',
+    message: 'Enter online broker URI: '
+}
+
+interface mqttUsernameResponse {
+    username: string
+}
+
+let mqttUsernameQuery = {
+    type: 'input',
+    name: 'username',
+    message: 'Enter username (if any) :'
+}
+
+interface mqttPasswordResponse {
+    password: string
+}
+
+let mqttPasswordQuery = {
+    type: 'password',
+    name: 'password',
+    message: 'Enter password (if any) :'
+}
+
+interface mqttClientIdResponse {
+    clientId: string
+}
+
+let mqttClientIdQuery = {
+    type: 'input',
+    name: 'clientId',
+    message: 'Enter clientId (if any) :'
 }
 
 interface logLevelResponse {
@@ -118,6 +169,38 @@ const protocolsQuery = async () => {
             await inquirer.prompt(portQuery).then((responseCoAP: portQueryResponse) => {
                 Object.assign(protocolConfig, { coap: responseCoAP });
             });
+        }
+        return response;
+    }).then( async (response: protocolTypeResponse) => {
+        if(response.protocols.includes('mqtt')){
+            await inquirer.prompt(mqttBrokerChoiceQuery).then( async (responseMQTT: mqttBrokerChoiceResponse) => {
+                if(responseMQTT.broker === "online"){
+                    await inquirer.prompt(mqttBrokerURIQuery).then( async (mqttBrokerURI: mqttBrokerURIResponse) => {
+                        await inquirer.prompt(portQuery).then( async (mqttPort: portQueryResponse) => {
+                            await inquirer.prompt(mqttUsernameQuery).then( async (mqttUsername: mqttUsernameResponse) => {
+                                await inquirer.prompt(mqttPasswordQuery).then( async (mqttPassword: mqttPasswordResponse) => {
+                                    await inquirer.prompt(mqttClientIdQuery).then( (mqttClientId: mqttClientIdResponse) => {
+                                        Object.assign(protocolConfig, { 
+                                            mqtt : { 
+                                                online : { 
+                                                    uri : mqttBrokerURI.uri, 
+                                                    username : ( mqttUsername.username === '' ) ? undefined : mqttUsername.username, 
+                                                    password : ( mqttPassword.password === '' ) ? undefined : mqttPassword.password,
+                                                    clientId : ( mqttClientId.clientId === '' ) ? undefined : mqttClientId.clientId
+                                                }
+                                            }
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                }else{
+                    await inquirer.prompt(portQuery).then((mqttPort: portQueryResponse) => {
+                        Object.assign(protocolConfig, { mqtt: { local: mqttPort } });
+                    })
+                }
+            })
         }
     }).then( () => protocolConfig);
 }

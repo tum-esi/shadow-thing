@@ -51,6 +51,38 @@
                             "type": "string"
                         }
                     }
+                },
+                "mqtt":{
+                    "type": "object",
+                    "properties": {
+                        "online": {
+                            "type": "object",
+                            "properties": {
+                                "uri":{
+                                    "type": "string"
+                                },
+                                "username":{
+                                    "type": "string"
+                                },
+                                "password":{
+                                    "type": "string"
+                                },
+                                "clientId":{
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "local": {
+                            "type": "object",
+                            "properties": {
+                                "port": {
+                                    "type": "integer",
+                                    "minimum": 1024,
+                                    "maximum": 49151
+                                }
+                            }
+                        }
+                    }
                 }
             },
             "required": ["staticAddress"],

@@ -7,7 +7,7 @@ const Ajv = require('ajv');
 
 // Initialize Ajv and add JSON schema for TD Validation 
 var ajv = new Ajv();
-var schemaLocation = path.join(__dirname, '..', 'td-json-schema-validation.json');
+var schemaLocation = path.join(__dirname, '..', 'validation-schemas' ,'td-json-schema-validation.json');
 var schema = fs.readFileSync(schemaLocation);
 ajv.addSchema(schema, 'td');
 

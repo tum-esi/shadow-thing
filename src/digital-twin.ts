@@ -1,4 +1,3 @@
-/*
 import * as WoT from "wot-typescript-definitions";
 import { VirtualThing, VirtualThingConfig} from './virtual-thing';
 
@@ -11,22 +10,22 @@ export class DigitalTwin {
     private customHandlers: { [key: string]: DTCustomHandler };
     private lastReadValues : { [key: string]: {value: any, timestamp: Date} };
 
-    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
+    public constructor(thingDescription: WoT.ThingInstance, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
         // Convert TD to an object.
-        this.thingDescription = <WoT.ThingInstance> JSON.parse(thingDescription);
+        this.thingDescription = thingDescription;
 
         // Consume thing
-        this.realThing = factory.consume(thingDescription);
+        this.realThing = factory.consume(JSON.stringify(this.thingDescription));
 
         // Remove event generation intervals from config
         this.config = config
         this.removeVirtualEventIntervals()
 
-        // Create a virtual thing (name/id have to be different for the servient to work)
-        let virtualTD = JSON.parse(thingDescription);
-        virtualTD.name = "Virtual-Thing" + Math.floor(Math.random() * 1000);
+        // Create a virtual thing (title/id have to be different for the servient to work)
+        let virtualTD = thingDescription;
+        virtualTD.title = "Virtual-Thing" + Math.floor(Math.random() * 1000);
         virtualTD.id = "de:tum:ei:esi:fp:virt" + Math.floor(Math.random() * 1000);
-        this.virtualThing = new VirtualThing(JSON.stringify(virtualTD), factory, config);
+        this.virtualThing = new VirtualThing(virtualTD, factory, config);
 
         // Initialise custom handlers and last read values objects
         this.customHandlers = {};
@@ -276,4 +275,4 @@ export type DTCustomResponse = {
 }
 
 export type DTCustomHandler = (lastValue: any, timestamp: Date) => Promise<DTCustomResponse>
-*/
+
