@@ -44,6 +44,8 @@ const DEFAULT_MQTT_CONFIG = {
     }
 };
 
+const EXAMPLE_TD_PATH = join(__dirname, "..", "examples", "td", "coffee_machine_td.json");
+
 interface CoapConfig{
     port?: number;
 
@@ -149,6 +151,10 @@ const confirmConfiguration = async (confPath: string, tdPaths: Array<string>, tw
                 resolve(JSON.parse(conf));
             });
         }else{
+            if(tdPaths.length === 0){
+                console.log("No TD specified, using example TD...");
+                tdPaths.push(EXAMPLE_TD_PATH);
+            }
             generateDefaultConfig(tdPaths, twinPaths).then( (defConf) => {
                 console.log("Configuration file not specified. Default configuration file generated : ");
                 console.log(JSON.stringify(defConf, null, 4));
@@ -259,7 +265,6 @@ const readTdFiles = (tdPaths: Array<string>) => {
         tdReadPromises.push( new Promise((resolve,reject) => {
             readFile(td, "utf-8", (error, data) => {
                 if(error){
-                    console.log("oh no");
                     reject(new Error("Unable to read TD file located with path : " + td));
                 }
                 resolve(data);
@@ -309,10 +314,8 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
         servient.addServer(httpServer);
         servient.addServer(new WebSocketServer(httpServer));
 
-        if(twins.length){
-            servient.addClientFactory(new HttpClientFactory(config.servient.http));
-            servient.addClientFactory(new HttpsClientFactory(config.servient.http));
-        }
+        servient.addClientFactory(new HttpClientFactory(config.servient.http));
+        servient.addClientFactory(new HttpsClientFactory(config.servient.http));
     }
    
     if (config.servient.coap) {
@@ -320,10 +323,8 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
 
         servient.addServer(coapServer);
 
-        if(twins.length){
-            servient.addClientFactory(new CoapClientFactory(coapServer));
-            servient.addClientFactory(new CoapsClientFactory());
-        }
+        servient.addClientFactory(new CoapClientFactory(coapServer));
+        servient.addClientFactory(new CoapsClientFactory());
     }
 
     if (config.servient.mqtt) {
@@ -484,7 +485,7 @@ confirmConfiguration(configPath, tdPaths, twinTdPaths)
     .then( (args: WoT.ThingDescription[]) => {
         let tdList: WoT.ThingInstance[] = args.map(arg => JSON.parse(arg));
         startVirtualization(config, tdList, [], []);
-    });
+    }).catch((error) => console.error(error));
 }).catch((error) => {
     console.error(error);  
 });
