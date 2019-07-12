@@ -4,371 +4,186 @@
  * MIT Licence - see LICENSE
  ********************************************************************************/
 
-import { readFile , readFileSync } from "fs";
-import { join } from "path";
-
-import * as WoT from "wot-typescript-definitions";
+import { VirtualThing } from "./virtual-thing"
+import { DigitalTwin } from "./digital-twin"
 import { Servient, Helpers } from "@node-wot/core";
-import { HttpConfig, HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
-import { WebSocketServer } from "@node-wot/binding-websockets";
+import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
 import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
-import { MqttBrokerServer, MqttClientFactory} from "@node-wot/binding-mqtt";
-
+import { readFile } from "fs";
+import { join } from "path";
+import { createInterface } from "readline";
 import * as winston from "winston";
 
-import { defaultQuery, configurationQuery }  from "./user-query";
-import { VirtualThing } from "./virtual-thing";
-import { DigitalTwin } from "./digital-twin";
+// Default relative paths for the config file and the thing description
+const defaultConfig = "../virtual-thing.conf.json";
+const defaultTd = "../examples/td/coffee_machine_td.json"
 
-const Ajv = require('ajv');
-const net = require('net');
+parseArgs();
 
-// Initialize Ajv and add JSON schema for configuration file validation
-var ajv = new Ajv();
-var schemaLocation = join(__dirname, '..', 'validation-schemas' ,'config-json-schema-validation.json');
-var schema = readFileSync(schemaLocation);
-ajv.addSchema(schema, "config");
+function parseArgs() {
+    // Variables to contain parsed TD and config paths
+    let configPath = "";
+    let tdPaths : Array<string> = [];
+    let twinTdPaths : Array<string> = [];
+    let modelPaths: Array<string> = [];
 
-// Default values for configuration
-const DEFAULT_LOG_LEVEL = 2;
-const DEFAULT_STATIC_ADDRESS = "127.0.0.1";
-const DEFAULT_EVENT_INTERVAL = 15;
-const DEFAULT_TWIN_CACHING = 10;
+    if (process.argv.length > 2) {
+        let argv = process.argv.slice(2);
+        let configPresentFlag = false;
+        let digitalTwinFlag = false;
+        argv.forEach( (arg) => {
+            if (configPresentFlag) {
+                configPresentFlag = false;
+                configPath = arg;
 
-const DEFAULT_HTTP_PORT = 8080;
-const DEFAULT_COAP_PORT = 5683;
+            } else if (digitalTwinFlag) {
+                digitalTwinFlag = false;
+                modelPaths.push(arg.split("::")[1]);
+                twinTdPaths.push(arg.split("::")[0]);
 
-const DEFAULT_MQTT_CONFIG = {
-    local: {
-        port: 1883
+            } else if (arg.match(/^(-t|--twin)$/i)) {
+                digitalTwinFlag = true;
+
+            } else if (arg.match(/^(-c|--configfile)$/i)) {
+                configPresentFlag = true;
+
+            } else if (arg.match(/^(-h|--help)$/i)) {
+                printHelp();
+                process.exit(0);
+
+            } else if (arg.match(/^(-v|--version)$/i)) {
+                console.info(require("../package.json").version);
+
+            } else {
+                tdPaths.push(arg);
+            }
+        });
     }
-};
 
-const EXAMPLE_TD_PATH = join(__dirname, "..", "examples", "td", "coffee_machine_td.json");
-
-interface CoapConfig{
-    port?: number;
-
-    address?: string;
+    // if no arguments are given, ask user if we should use the default paths.
+    if ((tdPaths.length === 0 && twinTdPaths.length === 0) || configPath === "") {
+        confirmDefaultPaths(configPath, tdPaths, twinTdPaths, modelPaths);
+    } else {
+        readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
+    }
 }
 
-interface MqttConfig{
-    local?: MqttLocalConfig;
-
-    online?: MqttOnlineConfig;
-}
-
-interface MqttOnlineConfig{
-    uri?: string;
-    username?: string;
-    password?: string;
-    clientId?: string;
-}
-
-interface MqttLocalConfig{
-    port: number;
-}
-
-interface ServientConfig{
-    staticAddress: string;
-
-    http?: HttpConfig;
-
-    coap?: CoapConfig;
-
-    mqtt?: MqttConfig;
-}
-
-interface LogConfig{
-    level: number;
-}
-
-interface IntervalsConfig{
-    [key: string]: number;
-}
-
-interface VirtualThingConfig{
-    nInstance: number;
-    
-    eventIntervals: IntervalsConfig;
-
-    twinPropertyCaching: IntervalsConfig;
-}
-
-interface ThingConfigList{
-    [key: string]: VirtualThingConfig;
-}
-
-interface ConfigFile{
-    servient: ServientConfig;
-
-    log: LogConfig;
-
-    things: ThingConfigList;
-}
-
-const parseArgs = (confPath: string, modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>) => {
-    let argv = process.argv.slice(2);
-    let configPresentFlag = false;
-    let digitalTwinFlag = false;
-        
-    argv.forEach( (arg: string) => {
-        if (configPresentFlag) {
-            configPresentFlag = false;
-            confPath = arg;
-
-        } else if (digitalTwinFlag) {
-            digitalTwinFlag = false;
-            modPaths.push(arg.split("::")[1]);
-            twinPaths.push(arg.split("::")[0]);
-
-        } else if (arg.match(/^(-t|--twin)$/i)) {
-            digitalTwinFlag = true;
-
-        } else if (arg.match(/^(-c|--configfile)$/i)) {
-            configPresentFlag = true;
-
-        } else if (arg.match(/^(-h|--help)$/i)) {
-            printHelp();
-            process.exit(0);
-
-        } else if (arg.match(/^(-v|--version)$/i)) {
-            console.info(require("../package.json").version);
-    
-        } else {
-            tDescPaths.push(arg);
-        }
+function confirmDefaultPaths(configPath: string, tdPaths: string[], twinTdPaths: string[], modelPaths: string[]) {
+    const readline = createInterface({
+        input: process.stdin,
+        output: process.stdout
     });
-}
 
-const confirmConfiguration = async (confPath: string, tdPaths: Array<string>, twinPaths: Array<string>) => {
-    return new Promise( (resolve, reject) => {
-        if(confPath){
-            readConfigFile(confPath).then( (conf: string) => {
-                if(!ajv.validate("config", conf)){
-                    reject(new Error("Invalid configuration file format!"));
-                    return;
+    if (configPath === "") { 
+        configPath = join(__dirname, defaultConfig);
+        console.warn(`No config file given. Using default Config: '${configPath}'`);
+    }
+
+    if (tdPaths.length === 0 && twinTdPaths.length === 0) { 
+        readline.question( 
+            "No Thing Description given. Start a virtual thing with the default TD? (yes/no) ", 
+            (answer) => {
+                if (answer.match(/^(yes|y)$/i)) { 
+                    tdPaths = [join(__dirname, defaultTd)];
+                    readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
+                } else {
+                    console.error("Virtual thing can not start without a Thing Description. \n" +
+                    "For more informations, run: virtual-thing --help");
+                    process.exit();
                 }
-                console.log("Using configuration file located in : " + confPath);
-                resolve(JSON.parse(conf));
-            });
-        }else{
-            if(tdPaths.length === 0){
-                console.log("No TD specified, using example TD...");
-                tdPaths.push(EXAMPLE_TD_PATH);
+                readline.close();
             }
-            generateDefaultConfig(tdPaths, twinPaths).then( (defConf) => {
-                console.log("Configuration file not specified. Default configuration file generated : ");
-                console.log(JSON.stringify(defConf, null, 4));
-                defaultQuery().then( (response: string) => {
-                    if(response === "yes"){
-                        resolve(defConf);
-                    }else{
-                        Promise.all(readTdFiles(tdPaths)).then( (args) => resolve(configurationQuery(args.map( (arg) => JSON.parse(arg) ))) );
-                    }
-                });
-            });
-        }
-    });    
+        );
+    } else {
+        readFiles(configPath, tdPaths, twinTdPaths, modelPaths);
+    }
 }
 
-/** Generates a default configuration when no configuration file is specified  **/
-const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<string>) => {
-        
-    let protocols = new Set();
-        
-    // Default skeleton of config object
-    let config: ConfigFile = {
-        servient: {
-            staticAddress: DEFAULT_STATIC_ADDRESS
-        },
-        log: {
-            level: DEFAULT_LOG_LEVEL
-        },
-        things: {}
-    };
+/** Parse command line arguments and start a virtual thing for each given TD */
+function readFiles(configPath: string, tdPaths: string[], twinTdPaths: string[], modelPaths: string[]) {
+    let readPromises: Array<Promise<string>> = [];
 
-    // Default configuration for each Thing Description
-    return Promise.all(readTdFiles(tdPaths))
-        .then((args: Array<string>) => {
-        
-        // Configuration for each Thing
-        args.forEach( (td: WoT.ThingDescription) => {
-            let tdJson: WoT.ThingInstance = JSON.parse(td);
-
-            let eventIntervals: IntervalsConfig = {};
-            let twinPropertyCaching: IntervalsConfig = {};
-    
-            // Configuration for events and protocol detection
-            for(let event in tdJson.events){
-                eventIntervals[event] = DEFAULT_EVENT_INTERVAL;
-                tdJson.events[event].forms.forEach( (form) => {
-                    let protocol = form.href.substr(0, form.href.indexOf(':'));
-                    protocols.add(protocol);
-                });
-            }
-            
-            // Configuration for properties and protocol detection
-            for(let prop in tdJson.properties){
-                twinPropertyCaching[prop] = DEFAULT_TWIN_CACHING;
-                tdJson.properties[prop].forms.forEach( (form) => {
-                    let protocol = form.href.substr(0, form.href.indexOf(':'));
-                    protocols.add(protocol);
-                });
-            }
-            
-            // Protocol detection for actions
-            for(let action in tdJson.actions){
-                tdJson.actions[action].forms.forEach( (form) => {
-                    let protocol = form.href.substr(0, form.href.indexOf(':'));
-                    protocols.add(protocol);
-                });
-            }
-            
-            // Protocol detection if base is specified
-            if(tdJson.base){
-                let protocol = tdJson.base.substr(0, tdJson.base.indexOf(':'));
-                protocols.add(protocol);
-            }
-
-            config.things[tdJson.id] = {
-                nInstance: 1,
-                eventIntervals,
-                twinPropertyCaching
-            }
-
+    // Async read of config and TD files from disk
+    readPromises.push( new Promise((resolve, reject) => {
+        readFile( configPath, "utf-8", (err, config) => {
+            if (err) { console.error(err); process.exit(); }
+            resolve(config);
         });
-        
-        // Configuration for detected protocols
-        if(protocols.has("http")){
-            let httpConfig: HttpConfig = {
-                port: DEFAULT_HTTP_PORT
-            }
-            config.servient.http = httpConfig;
-        }
-        
-        if(protocols.has("coap")){        
-            let coapConfig: CoapConfig = {
-                port: DEFAULT_COAP_PORT
-            }
-            config.servient.coap = coapConfig;
-        }
+    }) );
 
-        if(protocols.has("mqtt")){
-            config.servient.mqtt = DEFAULT_MQTT_CONFIG;
-        }
-
-        return config;
-    });
-}
-
-const readTdFiles = (tdPaths: Array<string>) => {
-    let tdReadPromises: Array<Promise<string>> = [];
     tdPaths.forEach((td) => {
-        tdReadPromises.push( new Promise((resolve,reject) => {
-            readFile(td, "utf-8", (error, data) => {
-                if(error){
-                    reject(new Error("Unable to read TD file located with path : " + td));
-                }
-                resolve(data);
+        readPromises.push( new Promise((resolve, reject) => {
+            readFile( td, "utf-8", (err, td) => {
+                if (err) { console.error(err); process.exit(); }
+                resolve(td);
             });
-        }));
+        }) );
     });
-    return tdReadPromises;
+
+    twinTdPaths.forEach((td) => {
+        readPromises.push( new Promise((resolve, reject) => {
+            readFile( td, "utf-8", (err, td) => {
+                if (err) { console.error(err); process.exit(); }
+                resolve(td);
+            });
+        }) );
+    });
+
+    Promise.all(readPromises).then( (args) => {
+        startVirtualization(args[0], args.slice(1, tdPaths.length+1), args.slice(tdPaths.length+1), modelPaths) 
+    })
 }
 
-const readConfigFile = async (confPath: string) => {
-    return new Promise((resolve,reject) => {
-        readFile(confPath, "utf-8", (error, data) => {
-            if(error){
-                reject(new Error("Unable to read configuration file!"));
-            }
-            resolve(data);
-        });
-    });
-}
+function startVirtualization(config: string, things: string[], twins: string[], models: string[]) {
+    let conf = JSON.parse(config);
 
-const startLocalMqttServer = (port: number) => {
-    var aedes = require('aedes')();
-    var server = net.createServer(aedes.handle);
-
-    server.listen(port, () => {
-        console.log('Local MQTT Broker listening on port', port);
-    });
-}
-
-const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], twins: WoT.ThingInstance[], models: string[]) => {
     // Set logging level according to config
-    setLogLevel(config);
+    setLogLevel(conf);
 
     // display config
     console.log("Servient configured with: ");
-    console.log(JSON.stringify(config, null, 4));
+    console.log(conf);
 
     let servient = new Servient();
 
     // apply config
-    Helpers.setStaticAddress(config.servient.staticAddress);
-    
-    // Initialize servers for corresponding servients and eventual client factories if twins are used
-    if (config.servient.http) {
-        let httpServer = new HttpServer(config.servient.http);
+    if (typeof conf.servient.staticAddress === "string") {
+        Helpers.setStaticAddress(conf.servient.staticAddress);
+    }
 
+    if (conf.servient.http !== undefined) {
+        let httpServer = (typeof conf.servient.http.port === "number") ? new HttpServer(conf.servient.http) : new HttpServer();
+        let coapServer = (typeof conf.servient.coap.port === "number") ? new CoapServer(conf.servient.coap.port) : new CoapServer();
         servient.addServer(httpServer);
-        servient.addServer(new WebSocketServer(httpServer));
-
-        servient.addClientFactory(new HttpClientFactory(config.servient.http));
-        servient.addClientFactory(new HttpsClientFactory(config.servient.http));
-    }
-   
-    if (config.servient.coap) {
-        let coapServer = new CoapServer(config.servient.coap.port);
-
         servient.addServer(coapServer);
-
-        servient.addClientFactory(new CoapClientFactory(coapServer));
-        servient.addClientFactory(new CoapsClientFactory());
     }
 
-    if (config.servient.mqtt) {
-        let mqttConfig = config.servient.mqtt;
-        let mqttServer : MqttBrokerServer;
-
-        if(mqttConfig.online){
-            mqttServer = new MqttBrokerServer(mqttConfig.online.uri, mqttConfig.online.username, mqttConfig.online.password, mqttConfig.online.clientId);
-        } else {
-            mqttServer = new MqttBrokerServer(config.servient.staticAddress + ':' + mqttConfig.local.port);
-        }
-        servient.addServer(mqttServer);
-        servient.addClientFactory(new MqttClientFactory());
+    // Add clientFactory to servient if twins are present
+    if (twins.length > 0) {
+        servient.addClientFactory(new HttpClientFactory());
+        servient.addClientFactory(new HttpsClientFactory());
+        servient.addClientFactory(new CoapClientFactory());
+        servient.addClientFactory(new CoapsClientFactory());
     }
 
     // Start Servient, virtual things and digital twins
     servient.start()
     .then((thingFactory) => {
-        things.forEach((td: WoT.ThingInstance) => {
-            if (config.things.hasOwnProperty(td.id)) {
-                if(config.things[td.id].nInstance === 1){
-                    new VirtualThing(td, thingFactory, config.things[td.id]).expose();
-                    console.info(`Exposing ${td.title}`);
-                }else{
-                    var i;
-                    for(i = 0; i<config.things[td.id].nInstance; i++){
-                        new VirtualThing({...td, title: td.title + (i+1), id: td.id + ':n-' + (i+1)}, thingFactory, config.things[td.id]).expose();
-                        console.info(`Exposing instance ${i+1} of ${td.title}`);
-                    }
-                }
-            } else {
+        things.forEach((td) => {
+            let id = JSON.parse(td).id;
+            if (conf.things && conf.things.hasOwnProperty(id)) { 
+                let vt = new VirtualThing(td, thingFactory, conf.things[id]);
+                vt.expose();
+            } else { 
                 let vt = new VirtualThing(td, thingFactory);
-                console.info("Exposing " + td.title);
                 vt.expose();
             }
-        });
+        })
         twins.forEach((td) => {
             let dt: DigitalTwin;
-            let id = td.id;
-            if (config.things && config.things.hasOwnProperty(id)) { 
-                dt = new DigitalTwin(td, thingFactory, config.things[id]);
+            let id = JSON.parse(td).id;
+            if (conf.things && conf.things.hasOwnProperty(id)) { 
+                dt = new DigitalTwin(td, thingFactory, conf.things[id]);
             } else { 
                 dt = new DigitalTwin(td, thingFactory);
             }
@@ -377,8 +192,8 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
                 let model = require(join(process.cwd(), modelPath));
                 model.addTwinModel(dt);
             }
-            dt.expose();
-        });
+            dt.expose()
+        })
     })
     .catch((err) => {
         console.error(err);
@@ -473,29 +288,3 @@ virtual-thing.conf.json fields:
   EVENT_IDx  : string with the name of an event to be configured
   INTERVAL   : integer to be interpred as a number of seconds.`);
 }
-
-// Variables to contain parsed TD and config paths
-
-var configPath: string;
-var modelPaths: Array<string> = [];
-var twinTdPaths: Array<string> = [];
-var tdPaths: Array<string> = [];
-
-// Main logic of script
-if(process.argv.length > 2){
-    parseArgs(configPath, modelPaths, twinTdPaths, tdPaths);
-}
-
-confirmConfiguration(configPath, tdPaths, twinTdPaths)
-.then((config: ConfigFile) => {
-    if(config.servient.mqtt && config.servient.mqtt.local){
-        startLocalMqttServer(config.servient.mqtt.local.port);
-    }
-    Promise.all(readTdFiles(tdPaths))
-    .then( (args: WoT.ThingDescription[]) => {
-        let tdList: WoT.ThingInstance[] = args.map(arg => JSON.parse(arg));
-        startVirtualization(config, tdList, [], []);
-    }).catch((error) => console.error(error));
-}).catch((error) => {
-    console.error(error);  
-});
