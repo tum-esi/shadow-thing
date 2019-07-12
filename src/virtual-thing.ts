@@ -1,27 +1,34 @@
 import * as WoT from "wot-typescript-definitions";
+import * as path from "path"
+import * as fs from "fs";
 
 const jsf = require("json-schema-faker"); // When JSON Faker v0.5.0 Stable is realeased, change this to TS import
 const Ajv = require('ajv');
-const ajv = new Ajv();
+
+// Initialize Ajv and add JSON schema for TD Validation 
+var ajv = new Ajv();
+var schemaLocation = path.join(__dirname, '..', 'validation-schemas' ,'td-json-schema-validation.json');
+var schema = fs.readFileSync(schemaLocation);
+ajv.addSchema(schema, 'td');
 
 /** Class representing a virtual WoT thing */
 export class VirtualThing {
     public readonly config: any;
     public readonly thingDescription: WoT.ThingInstance;
     public thing: WoT.ExposedThing;
-
+    
     /**
      * Create a virtual thing
      * @param thingDescription - A string representing a valid TD
      * @param factory - A WoTFactory attached to the node WoT servient where the thing should be exposed
      * @param config - An optional config object.
      */
-    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
+    public constructor(td: WoT.ThingInstance, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
 
         this.config = config;
 
-        // Convert TD to an object and validate it. TODO: validate using JSON Schema
-        this.thingDescription = <WoT.ThingInstance> JSON.parse(thingDescription);
+        // Convert TD to an object and validate it.
+        this.thingDescription = td;
         this.validateThingDescription();
 
         // Generate an ExposedThing
@@ -37,16 +44,13 @@ export class VirtualThing {
     public expose() {
         this.thing.expose();
     }
-
-    /** Validate this.thingDescription */
-    private validateThingDescription() {
-        if (!this.thingDescription.hasOwnProperty("id")) { 
-            console.error("TD ERROR: Thing Description must contain an id."); 
-            process.exit(); 
-        }
-        if (!this.thingDescription.hasOwnProperty("name")) { 
-            console.error("TD ERROR: Thing Description must contain a name."); 
-            process.exit(); 
+    
+    /** Validate this.thingDescription **/
+    private validateThingDescription(){ //TODO better error messages
+        // TD Schema Validation Test 
+        if(!ajv.validate('td', JSON.stringify(this.thingDescription))){
+            console.error("wrong");
+            process.exit();
         }
     }
 
@@ -99,18 +103,25 @@ export class VirtualThing {
             this.thing.setActionHandler(
                 action, 
                 (received) => { return new Promise( (resolve, reject) => { 
-                    if (this.thingDescription.actions[action].input && !ajv.validate(this.thingDescription.actions[action].input, received)) { 
-                        console.warn("WARNING: Invalid input received for action: " + action);
-                        reject(new Error("Invalid action input."));
-                        return;
-                    }
-                    console.info("Action -" + action + "- triggered with input: " + JSON.stringify(received));
-                    if (typeof this.thingDescription.actions[action].output === "undefined") { 
-                        resolve(); 
-                    } else { 
-                        resolve(jsf(this.thingDescription.actions[action].output)); 
-                    } 
-                } ); }
+                        if (this.thingDescription.actions[action].input) {
+                            if (!ajv.validate(this.thingDescription.actions[action].input, received)) { 
+                                console.warn("WARNING: Invalid input received for action: " + action);
+                                reject(new Error("Invalid action input."));
+                                return;
+                            }else{
+                                console.info("Action -" + action + "- triggered with input: " + JSON.stringify(received));
+                            }
+                        }else{
+                            console.info("Action -" + action + "- triggered.");
+                        }                    
+
+                        if (this.thingDescription.actions[action].output) { 
+                            resolve(jsf(this.thingDescription.actions[action].output));
+                        } else {
+                            resolve();
+                        }
+                    }); 
+                }
             );
         }
     }
@@ -139,9 +150,6 @@ export class VirtualThing {
 
 export type VirtualThingConfig = {
     eventIntervals?: {
-        [key: string]: number
-    },
-    twinPropertyCaching?: {
         [key: string]: number
     }
 }

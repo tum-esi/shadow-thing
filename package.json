@@ -1,10 +1,10 @@
 {
   "name": "virtual-thing",
-  "version": "0.3.4",
+  "version": "0.4.1",
   "description": "Creates and deploys a virtual thing based on its TD",
   "author": "Hassib Belhaj <https://github.com/hasbel>",
   "license": "MIT",
-  "main": "dist/virtual-thing.js",
+  "main": "dist/virtual-thing",
   "types": "dist/virtual-thing.d.ts",
   "bin": {
     "virtual-thing": "dist/cli.js"
@@ -23,7 +23,8 @@
     "iot",
     "thing",
     "thing description",
-    "virtual"
+    "virtual",
+    "digital twin"
   ],
   "devDependencies": {
     "typescript": "3.0.3",
@@ -31,13 +32,19 @@
     "@types/node": "10.12.5"
   },
   "dependencies": {
-    "@node-wot/core": "0.6.1",
-    "@node-wot/binding-http": "0.6.1",
-    "@node-wot/binding-coap": "0.6.1",
-    "wot-typescript-definitions": "0.6.0",
+    "@node-wot/binding-coap": "0.6.2",
+    "@node-wot/binding-http": "0.6.2",
+    "@node-wot/binding-mqtt": "0.6.2",
+    "@node-wot/binding-websockets": "0.6.2",
+    "@node-wot/core": "0.6.2",
+    "aedes": "0.39.0",
     "ajv": "6.5.5",
+    "inquirer": "6.4.1",
+    "is-utf8": "0.2.1",
     "json-schema-faker": "0.4.7",
-    "winston": "3.1.0"
+    "jsonld": "1.1.0",
+    "winston": "3.1.0",
+    "wot-typescript-definitions": "0.6.2"
   },
   "scripts": {
     "preinstall": "rm -rf thingweb.node-wot && rm -rf node_modules && rm -rf package-lock.json",
