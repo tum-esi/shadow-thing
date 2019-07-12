@@ -88,6 +88,8 @@ interface IntervalsConfig{
 }
 
 interface VirtualThingConfig{
+    nInstance: number;
+    
     eventIntervals: IntervalsConfig;
 
     twinPropertyCaching: IntervalsConfig;
@@ -230,6 +232,7 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
             }
 
             config.things[tdJson.id] = {
+                nInstance: 1,
                 eventIntervals,
                 twinPropertyCaching
             }
@@ -344,10 +347,17 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
     servient.start()
     .then((thingFactory) => {
         things.forEach((td: WoT.ThingInstance) => {
-            if (config.things.hasOwnProperty(td.id)) { 
-                let vt = new VirtualThing(td, thingFactory, config.things[td.id]);
-                console.info("Exposing " + td.title);
-                vt.expose();
+            if (config.things.hasOwnProperty(td.id)) {
+                if(config.things[td.id].nInstance === 1){
+                    new VirtualThing(td, thingFactory, config.things[td.id]).expose();
+                    console.info(`Exposing ${td.title}`);
+                }else{
+                    var i;
+                    for(i = 0; i<config.things[td.id].nInstance; i++){
+                        new VirtualThing({...td, title: td.title + (i+1), id: td.id + ':n-' + (i+1)}, thingFactory, config.things[td.id]).expose();
+                        console.info(`Exposing instance ${i+1} of ${td.title}`);
+                    }
+                }
             } else {
                 let vt = new VirtualThing(td, thingFactory);
                 console.info("Exposing " + td.title);

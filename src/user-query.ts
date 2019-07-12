@@ -108,6 +108,24 @@ let logLevelQuery = {
     choices: [0, 1, 2, 3, 4]
 }
 
+interface instanceNumberResponse {
+    nInstance: number;
+}
+
+let instanceNumberQuery = {
+    type: 'number',
+    message: 'Enter desired number of instances for each Things :',
+    name: 'nInstance',
+    validate: (answer: number) => {
+        if(typeof answer !== 'number' || isNaN(answer)){
+            return "Not a number.";
+        }else if(answer <= 0){
+            return "Number of instance cannot be less than or equal to zero.";
+        }
+        return true;
+    }
+}
+
 interface eventIntervalResponse {
     eventIntervals: number
 }
@@ -212,25 +230,32 @@ const thingQuery = async (thingList: Array<WoT.ThingInstance>) => {
     });
     return inquirer.prompt(eventIntervalQuery).then( ( eventTime: eventIntervalResponse ) => {
         return inquirer.prompt(twinPropertyCachingQuery).then( ( cachingTime: twinPropertyCachingResponse ) => {
-            thingList.forEach( (thing: WoT.ThingInstance) => {
-                let container = {};
-                let eventInter = {};
-                let twinProp = {};
+            return inquirer.prompt(instanceNumberQuery).then( ( instanceNumber: instanceNumberResponse ) => {
+                thingList.forEach( async (thing: WoT.ThingInstance) => {
+                    let container = {};
+                    let eventInter = {};
+                    let twinProp = {};
+                    
+                    Object.assign(container, { nInstance: instanceNumber.nInstance });
 
-                for(let event in thing.events){
-                    Object.assign(eventInter, {[event]: eventTime.eventIntervals});
-                }
-                Object.assign(container, { eventIntervals: eventInter });
+                    for(let event in thing.events){
+                        Object.assign(eventInter, {[event]: eventTime.eventIntervals});
+                    }
+                    Object.assign(container, { eventIntervals: eventInter });
 
-                for(let prop in thing.properties){
-                    Object.assign(twinProp, {[prop]: cachingTime.twinPropertyCaching});
-                }
-                Object.assign(container, { twinPropertyCaching: twinProp });
+                    for(let prop in thing.properties){
+                        Object.assign(twinProp, {[prop]: cachingTime.twinPropertyCaching});
+                    }
+                    Object.assign(container, { twinPropertyCaching: twinProp });
 
-                Object.assign(things, { [thing.id]: container });
+                    Object.assign(things, { [thing.id]: container });
+                });
             });
         });
-    }).then( () => things );        
+    }).then( (hi:string) => {
+        console.log(hi);
+        return things;
+    });        
 }
 
 export const configurationQuery = async (thingList: Array<WoT.ThingInstance>) => {
