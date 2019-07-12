@@ -10,22 +10,22 @@ export class DigitalTwin {
     private customHandlers: { [key: string]: DTCustomHandler };
     private lastReadValues : { [key: string]: {value: any, timestamp: Date} };
 
-    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
+    public constructor(thingDescription: WoT.ThingInstance, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
         // Convert TD to an object.
-        this.thingDescription = <WoT.ThingInstance> JSON.parse(thingDescription);
+        this.thingDescription = thingDescription;
 
         // Consume thing
-        this.realThing = factory.consume(thingDescription);
+        this.realThing = factory.consume(JSON.stringify(this.thingDescription));
 
         // Remove event generation intervals from config
         this.config = config
         this.removeVirtualEventIntervals()
 
-        // Create a virtual thing (name/id have to be different for the servient to work)
-        let virtualTD = JSON.parse(thingDescription);
-        virtualTD.name = "Virtual-Thing" + Math.floor(Math.random() * 1000);
+        // Create a virtual thing (title/id have to be different for the servient to work)
+        let virtualTD = JSON.parse(JSON.stringify(thingDescription));
+        virtualTD.title = "Virtual-Thing" + Math.floor(Math.random() * 1000);
         virtualTD.id = "de:tum:ei:esi:fp:virt" + Math.floor(Math.random() * 1000);
-        this.virtualThing = new VirtualThing(JSON.stringify(virtualTD), factory, config);
+        this.virtualThing = new VirtualThing(virtualTD, factory, config);
 
         // Initialise custom handlers and last read values objects
         this.customHandlers = {};
@@ -137,6 +137,7 @@ export class DigitalTwin {
                     if (maxAge && this.lastReadValues[property]) {
                         let timeDelta = (Date.now() - this.lastReadValues[property].timestamp.valueOf()) / 1000;
                         if (timeDelta < maxAge) {
+                            console.info("Property read: " + property);
                             resolve(
                                 {
                                     data: this.lastReadValues[property].value,
@@ -153,12 +154,13 @@ export class DigitalTwin {
                             value: realResponse, 
                             timestamp: new Date()
                         }
-                        // anontate response with accuracy data
+                        // annotate response with accuracy data
                         let annotatedResponse = { 
                             data: realResponse,
                             origin: "thing",
                         }
-                        resolve(annotatedResponse)
+                        console.info("Property read: " + property);
+                        resolve(annotatedResponse);
                     })
                     .catch((realError) => {
                         console.warn("Could not read property " + property + " from real thing: " + realError);
@@ -177,8 +179,9 @@ export class DigitalTwin {
                                     data: customResponse.data,
                                     origin: "model",
                                     accuracy: customResponse.accuracy
-                                }
-                                resolve(annotatedResponse)
+                                };
+                                console.info("Property read: " + property);
+                                resolve(annotatedResponse);
                             })
                             .catch((customError) => {
                                 reject(customError) // TODO: Should this return the custom or the real error ?
@@ -190,7 +193,8 @@ export class DigitalTwin {
                                     data: fakeResponse,
                                     origin: "random",
                                 }
-                                resolve(annotatedResponse)
+                                console.info("Property read: " + property);
+                                resolve(annotatedResponse);
                             })
                             .catch((fakeError) => {
                                 console.error("ERROR: Could not read property " + property + " from virtual thing: " + fakeError);
@@ -222,17 +226,20 @@ export class DigitalTwin {
     }
 
     private subscribeToEvent(event: string) {
-        this.realThing.events[event].subscribe(
+        let subscription = this.realThing.events[event].subscribe(
             (realData) => { 
                 this.thing.events[event].emit(realData); 
                 console.info("Forwarding emitted event: " + event);
             },
-            (realError) => { 
-                console.debug("Subscription failed with error: " + JSON.stringify(realError));
-                console.debug("Will try again in 10 seconds...")
-                setTimeout(() => { this.subscribeToEvent(event); }, 10000);  //FIXME: When node-wot is fixed, move this to finally()
+            (realError) => {
+                console.debug("Subscription to event " + event + " failed with error: " + realError);
+                subscription.unsubscribe(); //FIXME: temporary fix until node wot is fixed ( if status code 404 received, stop polling )
+            },
+            () => {
+                console.debug("Will try again in 10 seconds..."); // Retry only if request meets error...
+                setTimeout(() => { this.subscribeToEvent(event); }, 10000); 
             }
-        )
+        );
     }
 
     // Add read and write handlers for properties.
@@ -275,3 +282,4 @@ export type DTCustomResponse = {
 }
 
 export type DTCustomHandler = (lastValue: any, timestamp: Date) => Promise<DTCustomResponse>
+
