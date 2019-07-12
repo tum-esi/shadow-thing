@@ -2,7 +2,7 @@
     "@context": "http://www.w3.org/ns/td",
     "@type": "Thing",
     "id": "de:tum:ei:esi:fp:coffee",
-    "name": "Virtual-Coffee-Machine",
+    "title": "Virtual-Coffee-Machine",
     "description": "A virtual coffee machine to learn the WoT TD standard",
     "security": [
         {
