@@ -101,8 +101,7 @@
             "additionalProperties": false
         },
         "things": {
-            "type": "object",
-            "additionalProperties": {"type": "object"}
+            "type": "object"
         },
         "required": ["servient", "log", "things"],
         "additionalProperties": false
