@@ -39,6 +39,7 @@
     "@node-wot/core": "0.6.2",
     "aedes": "0.39.0",
     "ajv": "6.5.5",
+    "csv-writer": "1.5.0",
     "inquirer": "6.4.1",
     "is-utf8": "0.2.1",
     "json-schema-faker": "0.4.7",

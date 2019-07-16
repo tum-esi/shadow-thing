@@ -1,0 +1,20 @@
+{
+    "mode": 0,
+    "protocol": ["coap"], 
+    "ports": {
+        "start": 1,
+        "end": 10
+    }, 
+    "interval": {
+        "start": 1, 
+        "end": 20, 
+        "step": 1
+    },
+    "nDataEntries": 100,
+    "tdPath": "./examples/td/coffee_machine_td.json",
+    "thingInstance": {
+        "start": 10000, 
+        "end": 100000, 
+        "step": 5000
+    }
+}
