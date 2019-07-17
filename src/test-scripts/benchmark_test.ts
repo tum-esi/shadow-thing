@@ -1,4 +1,5 @@
 import { readFile } from "fs";
+import * as cluster from "cluster";
 
 import * as winston from "winston";
 
@@ -9,6 +10,7 @@ import { CoapServer, CoapClientFactory } from "@node-wot/binding-coap";
 
 import { VirtualThing, VirtualThingConfig } from "../virtual-thing";
 
+const numCPUs = require('os').cpus().length;
 const STATIC_ADDRESS = '127.0.0.1';
 
 var totalPorts: number; // total number of ports to use
@@ -18,6 +20,8 @@ var nbMeasures: number; // number of measures to take
 
 var protocol: string; // protocol used for IO
 var tdPath: string; // path to TD file used to create virtual-thing
+
+var mode: string; // single or multiple threads
 
 const createLogger = (logLevel: string) => {
     let logger = winston.createLogger({
@@ -39,6 +43,7 @@ const parseArgs = async () => {
             let argv = process.argv.slice(2);
             tdPath = argv.pop();
             protocol = argv.pop();
+            mode = argv.pop();
 
             [totalPorts, evInterval, insPerPort, nbMeasures] = argv.map( (arg) => parseInt(arg) );
             resolve();
@@ -61,7 +66,7 @@ const writeResultFile = (data: Array<object>) => {
     return csvWriter.writeRecords(data);
 }
 
-const initialiseThings = (td: WoT.ThingInstance) => {
+const initialiseThingsSingleThread = (td: WoT.ThingInstance) => {
     Helpers.setStaticAddress(STATIC_ADDRESS);
 
     for(let i = 0; i<totalPorts; i++){
@@ -78,6 +83,48 @@ const initialiseThings = (td: WoT.ThingInstance) => {
         let thingConfig: VirtualThingConfig = {
             eventIntervals: {}
         };
+
+        for(let event in td.events){
+            Object.assign(thingConfig.eventIntervals, { [event]: evInterval });
+        }
+
+        servient.start()
+        .then((thingFactory: WoT.WoTFactory) => {
+            for( let n = 0; n<insPerPort; n++ ){
+                new VirtualThing(
+                    {
+                        ...td,
+                        title: td.title + (n+1),
+                        id: td.id + ':n-' + (n+1)
+                    },
+                    thingFactory,
+                    thingConfig
+                ).expose();
+            }
+        }).catch( err => console.error(err) );
+    }
+}
+
+const initialiseThingsMultiThread = (td: WoT.ThingInstance) => {
+    Helpers.setStaticAddress(STATIC_ADDRESS);
+
+    if(cluster.isMaster) {
+        for(let i = 0; i<numCPUs || i<totalPorts; i++){
+            cluster.fork({num: i});
+        }
+    }else{
+        let servient = new Servient();
+        if ( protocol === 'http' ){
+            servient.addServer( new HttpServer({ port: 8080 + parseInt(process.env.num) }) );
+        }else if( protocol === 'coap' ){
+            servient.addServer( new CoapServer(5683 + parseInt(process.env.num)) );
+        }else if( protocol === 'mqtt' ){
+
+        }
+
+        let thingConfig: VirtualThingConfig = {
+            eventIntervals: {}
+        }
 
         for(let event in td.events){
             Object.assign(thingConfig.eventIntervals, { [event]: evInterval });
@@ -135,7 +182,12 @@ const startTestEvent = (td: WoT.ThingInstance) => {
                 });
                 startTime = new Date();
                 if( ++counter >= nbMeasures){
-                    writeResultFile(data).then( () => process.exit(0) );
+                    writeResultFile(data).then( () => {
+                        for(var id in cluster.workers){
+                            cluster.workers[id].kill();
+                        }
+                        process.exit(0);
+                    });
                 }
                 console.error(counter);
             },
@@ -152,14 +204,13 @@ parseArgs().then(() => {
             throw error;
         }
         let td = JSON.parse(data);
-        initialiseThings(td);
-        setTimeout(() => startTestEvent(td), 30000);
+        if( mode === 'single' ){
+            initialiseThingsSingleThread(td);
+        }else if( mode === 'multi' ){
+            initialiseThingsMultiThread(td);
+        }
+        if(cluster.isMaster) {
+            setTimeout(() => startTestEvent(td), 30000);
+        }
     });
 }).catch( (err: Error) => console.error(err) );
-
-
-
-
-
-
-

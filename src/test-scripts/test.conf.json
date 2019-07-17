@@ -14,7 +14,7 @@
     "tdPath": "./examples/td/coffee_machine_td.json",
     "thingInstance": {
         "start": 10000, 
-        "end": 100000, 
+        "end": 20000, 
         "step": 5000
     }
 }
