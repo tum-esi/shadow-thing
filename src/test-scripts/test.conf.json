@@ -1,5 +1,5 @@
 {
-    "mode": 0,
+    "mode": ["single", "multi"],
     "protocol": ["http", "coap"], 
     "ports": {
         "start": 1,

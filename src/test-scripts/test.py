@@ -17,7 +17,7 @@ if not os.path.exists('test_results/coap'):
 if not os.path.exists('test_results/mqtt'):
     os.mkdir('test_results/mqtt')
 
-if data['mode'] == 0:
+for mode in data['mode']:
     print('Starting single thread test...');
     for protocol in data['protocol']:
         for nPort in range(data['ports']['start'], data['ports']['end']+1):
@@ -26,6 +26,7 @@ if data['mode'] == 0:
                     nMeasures = data['nDataEntries']
                     tdPath = data['tdPath']                    
                     print(f'Starting test with {protocol} protocol, {nPort} ports, {nInstancePerPort*nPort} instances, with an interval of {interval}'); 
-                    subprocess.run(['node', '--max-old-space-size=6000', 'dist/test-scripts/single-thread-test.js', f'{nPort}', f'{interval}', f'{nInstancePerPort}', f'{nMeasures}', 'single', f'{protocol}', f'{tdPath}'])
+                    subprocess.run(['node', '--max-old-space-size=6000', 'dist/test-scripts/benchmark_test.js', f'{nPort}', f'{interval}', \
+                            f'{nInstancePerPort}', f'{nMeasures}', f'{mode}', f'{protocol}', f'{tdPath}'])
                     print('Done.')
 
