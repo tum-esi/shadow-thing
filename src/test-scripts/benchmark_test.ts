@@ -55,7 +55,7 @@ const parseArgs = async () => {
 
 const writeResultFile = (data: Array<object>) => {
     let csvWriter = require('csv-writer').createObjectCsvWriter({
-        path: `test_results/${protocol}/${totalPorts}-${evInterval}-${insPerPort*totalPorts}`,
+        path: `test_results/${mode}-thread/${protocol}/${totalPorts}-${evInterval}-${insPerPort*totalPorts}`,
         header: [
             {id: 'interval', title: 'Interval'},
             {id: 'startTime', title: 'Start'},
@@ -210,7 +210,7 @@ parseArgs().then(() => {
             initialiseThingsMultiThread(td);
         }
         if(cluster.isMaster) {
-            setTimeout(() => startTestEvent(td), 30000);
+            setTimeout(() => startTestEvent(td), 60000);
         }
     });
 }).catch( (err: Error) => console.error(err) );

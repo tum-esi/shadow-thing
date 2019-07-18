@@ -8,14 +8,29 @@ with open("src/test-scripts/test.conf.json", encoding='utf-8-sig') as json_file:
 if not os.path.exists('test_results'):
     os.mkdir('test_results')
 
-if not os.path.exists('test_results/http'):
-    os.mkdir('test_results/http')
+if not os.path.exists('test_results/single-thread'):
+    os.mkdir('test_results/single-thread')
 
-if not os.path.exists('test_results/coap'):
-    os.mkdir('test_results/coap')
+if not os.path.exists('test_results/single-thread/http'):
+    os.mkdir('test_results/single-thread/http')
 
-if not os.path.exists('test_results/mqtt'):
-    os.mkdir('test_results/mqtt')
+if not os.path.exists('test_results/single-thread/coap'):
+    os.mkdir('test_results/single-thread/coap')
+
+if not os.path.exists('test_results/single-thread/mqtt'):
+    os.mkdir('test_results/single-thread/mqtt')
+
+if not os.path.exists('test_results/multi-thread'):
+    os.mkdir('test_results/multi-thread')
+
+if not os.path.exists('test_results/multi-thread/http'):
+    os.mkdir('test_results/multi-thread/http')
+
+if not os.path.exists('test_results/multi-thread/coap'):
+    os.mkdir('test_results/multi-thread/coap')
+
+if not os.path.exists('test_results/multi-thread/mqtt'):
+    os.mkdir('test_results/multi-thread/mqtt')
 
 for mode in data['mode']:
     print('Starting single thread test...');

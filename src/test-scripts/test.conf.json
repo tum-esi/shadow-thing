@@ -1,16 +1,16 @@
 {
-    "mode": ["single", "multi"],
-    "protocol": ["http", "coap"], 
+    "mode": ["multi"],
+    "protocol": ["http"], 
     "ports": {
-        "start": 1,
-        "end": 10
+        "start": 5,
+        "end": 5 
     }, 
     "interval": {
         "start": 1, 
-        "end": 20, 
-        "step": 1
+        "end": 10, 
+        "step": 2
     },
-    "nDataEntries": 50,
+    "nDataEntries": 25,
     "tdPath": "./examples/td/coffee_machine_td.json",
     "thingInstance": {
         "start": 10000, 
