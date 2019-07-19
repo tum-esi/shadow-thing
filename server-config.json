@@ -1,0 +1,15 @@
+{
+    "mode": "single",
+    "staticAddress": "127.0.0.1",
+    "ports": 2,
+    "protocol": "http",
+    "things": {
+        "./examples/td/coffee_machine_td.json": {
+            "instances": 1000,
+            "eventIntervals": {
+                "maintenance": 10,
+                "error": 15
+            }
+        }
+    }
+}
