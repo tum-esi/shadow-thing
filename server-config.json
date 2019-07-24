@@ -1,15 +1,33 @@
 {
-    "mode": "single",
+    "mode": "multi",
     "staticAddress": "127.0.0.1",
-    "ports": 2,
-    "protocol": "http",
-    "things": {
-        "./examples/td/coffee_machine_td.json": {
-            "instances": 1000,
-            "eventIntervals": {
-                "maintenance": 10,
-                "error": 15
+    "servients": [
+        {
+            "instances": 2,
+            "protocol": "http",
+            "things": {
+                "./examples/td/coffee_machine_td.json": {
+                    "instances": 10000,
+                    "eventIntervals": {
+                        "maintenance": 10,
+                        "error": 15
+                    }
+                }
+            }  
+        },
+        {
+            "instances": 10,
+            "protocol": "http",
+            "things": {
+                "./examples/td/coffee_machine_td.json": {
+                    "instances": 5000,
+                    "eventIntervals": {
+                        "maintenance": 5,
+                        "error": 20
+                    }
+                }
             }
         }
-    }
+
+    ]
 }

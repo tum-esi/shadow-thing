@@ -1,0 +1,16 @@
+{
+    "staticAddress": "127.0.0.1",
+    "clients": [
+        {
+            "instances": 1,
+            "thingURL": "http://127.0.0.1:8080/Virtual",
+            "events_to_sub": ["error"],
+            "actions_to_inv": {
+                "brew": 20
+            },
+            "prop_to_read": {
+                "waterStatus": 10
+            }
+        }
+    ]
+}
