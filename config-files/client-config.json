@@ -3,7 +3,8 @@
     "clients": [
         {
             "instances": 1,
-            "thingURL": "http://127.0.0.1:8080/Virtual",
+            "thingURL": "http://127.0.0.1:8080/Virtual-Coffee-Machine_1_1",
+            "measures": 2,
             "events_to_sub": ["error"],
             "actions_to_inv": {
                 "brew": 20

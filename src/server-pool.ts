@@ -11,7 +11,7 @@ import { CoapServer } from "@node-wot/binding-coap";
 import { VirtualThing } from "./virtual-thing";
 
 const NUM_CPUS = require('os').cpus().length;
-const DEFAULT_CONFIG_PATH = "./server-config.json";
+const DEFAULT_CONFIG_PATH = "./config-files/server-config.json";
 
 let config: Config;
 
@@ -54,7 +54,6 @@ const createLogger = (logLevel: string) => {
     console.warn = (msg:string) => logger.warn(msg);
     console.error = (msg:string) => logger.error(msg);
 }
-
 
 /** For specific logging from this script  */
 const log = (msg: string) => {
@@ -138,12 +137,12 @@ const launchSingleThread = () => {
     });
 }
 
-/** Executed by worker processes to initialise a servient on the process  */
+/** Executed by worker processes to initialise a servient on an individual thread */
 const launchMultiThread = () => {
     initServer(config.servients[parseInt(process.env.servNum)], cluster.worker.id, parseInt(process.env.portPos));
 }
 
-
+/** Main logic of script */
 createLogger('error');
 readFilePromise(DEFAULT_CONFIG_PATH).then( (file: string) => {
     config = JSON.parse(file);

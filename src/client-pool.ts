@@ -1,0 +1,244 @@
+import * as fs from "fs";
+import { join } from "path";
+
+import * as winston from 'winston';
+
+import * as WoT from "wot-typescript-definitions";
+import { Servient, Helpers } from "@node-wot/core";
+import { HttpClientFactory } from "@node-wot/binding-http";
+import { CoapClientFactory } from "@node-wot/binding-coap";
+import { MqttClientFactory } from "@node-wot/binding-mqtt";
+
+const jsf = require("json-schema-faker");
+
+const DEFAULT_CONFIG_PATH = "./config-files/client-config.json";
+
+let config: Config;
+let resultPath: string;
+
+interface TestConfig{
+    [key:string]: number;
+}
+
+interface ClientConfig {
+    instances: number;
+    thingURL: string;
+    measures: number;
+    events_to_sub: Array<string>;
+    actions_to_inv: TestConfig;
+    prop_to_read: TestConfig;
+}
+
+interface Config {
+    staticAddress: string;
+    clients: Array<ClientConfig>;
+}
+
+const createLogger = (logLevel: string) => {
+    let logger = winston.createLogger({
+        level: logLevel,
+        format: winston.format.cli(),
+        transports: [new winston.transports.Console()]
+    });
+
+    console.debug = (msg:string) => logger.debug(msg);
+    console.log = (msg:string) => logger.verbose(msg);
+    console.info = (msg:string) => logger.info(msg);
+    console.warn = (msg:string) => logger.warn(msg);
+    console.error = (msg:string) => logger.error(msg);
+}
+
+const log = (msg: string) => {
+    process.stdout.write(`test-client >> ${msg}\n`); 
+}
+
+const readFilePromise = (path: string) => {
+    return new Promise( (resolve, reject) => {
+        fs.readFile(DEFAULT_CONFIG_PATH, 'utf-8', (error, data) => {
+            if(error){
+                reject(error);
+            }
+            resolve(data);
+        });
+    });
+}
+
+const fetchAndConsume = (factory: WoT.WoTFactory, url: string) => {
+    return new Promise(async (resolve,reject) => {
+        let resolved = false;
+        while(!resolved){
+            log("Fetching...");
+            await factory.fetch(url).then((fetchedTD: WoT.ThingDescription) => {
+                resolve(factory.consume(fetchedTD));
+                resolved = true;
+            }).catch((err: Error) => log("Error, retrying..."));
+        }
+    });
+}
+
+const testProp = (thing: WoT.ConsumedThing, prop: string, delay: number, nbMeasures: number) => {
+    return new Promise( (resolve, reject) => {
+        let data: Array<object> = [];
+
+        let interval = setInterval( async () => {
+            let startTime = new Date();
+            await thing.properties[prop].read();
+            let endTime = new Date();
+            data.push({
+                interval: endTime.getTime() - startTime.getTime(),
+                startTime,
+                endTime
+            });
+
+            if(data.length >= nbMeasures){
+                clearInterval(interval);
+                log(`Test for property <${prop}> done.`);
+                resolve(data);
+            }
+        }, delay*1000);
+    });
+}
+
+const testAction = (thing: WoT.ConsumedThing, action: string, delay: number, nbMeasures: number) => {
+    return new Promise( (resolve, reject) => {
+        let data: Array<object> = [];
+
+        let interval = setInterval( async () => {
+            let startTime = new Date();
+            if(thing.actions[action].input){
+                await thing.actions[action].invoke(jsf(thing.actions[action].input));
+            }else{
+                await thing.actions[action].invoke();
+            }
+            let endTime = new Date();
+            data.push({
+                interval: endTime.getTime() - startTime.getTime(),
+                startTime,
+                endTime
+            });
+
+            if(data.length >= nbMeasures){
+                clearInterval(interval);
+                log(`Test for action <${action}> done.`);
+                resolve(data);
+            }
+        }, delay*1000);
+    });
+}
+
+const testEvent = (thing: WoT.ConsumedThing, event: string, nbMeasures: number) => {
+    return new Promise( (resolve, reject) => {
+        let startTime = new Date();
+        let data: Array<object> = [];
+        let subscription = thing.events[event].subscribe(
+            () => {
+                let endTime = new Date();
+                data.push({
+                    interval: endTime.getTime() - startTime.getTime(),
+                    startTime,
+                    endTime
+                });
+                startTime = new Date();
+
+                if(data.length >= nbMeasures){
+                    subscription.unsubscribe();
+                    log(`Test for event <${event}> done.`)
+                    resolve(data);
+                }
+            },
+            (err: Error) => console.error(err)
+        );
+    });
+}
+
+const startTest = (clientConfig: ClientConfig) => {
+    Helpers.setStaticAddress(config.staticAddress);
+
+    let servient = new Servient();
+    servient.addClientFactory(new HttpClientFactory());
+    servient.addClientFactory(new CoapClientFactory());
+    servient.addClientFactory(new MqttClientFactory());
+
+    return servient.start()
+    .then( (thingFactory: WoT.WoTFactory) => {
+        return fetchAndConsume(thingFactory, clientConfig.thingURL);
+    }).then( (thing: WoT.ConsumedThing) => {
+        let propPromises = [];
+        let actionPromises = [];
+        let eventPromises = [];
+
+        for(let prop in clientConfig.prop_to_read){
+            propPromises.push(testProp(thing, prop, clientConfig.prop_to_read[prop], clientConfig.measures));
+        }
+
+        for(let action in clientConfig.actions_to_inv){
+            actionPromises.push(testAction(thing, action, clientConfig.actions_to_inv[action], clientConfig.measures));
+        }
+        
+        clientConfig.events_to_sub.forEach( (event: string) => {
+            eventPromises.push(testEvent(thing, event, clientConfig.measures));
+        });
+
+        return ({
+            props: Promise.all(propPromises), 
+            actions: Promise.all(actionPromises), 
+            events: Promise.all(eventPromises)
+        });
+    })
+}
+
+const writeResultFile = (data: Array<object>, pathName: string, fileName: string) => {
+    if(!fs.existsSync(pathName)){
+        fs.mkdirSync(pathName, { recursive: true });
+    }
+
+    let path = join(pathName, fileName);
+    let csvWriter = require('csv-writer').createObjectCsvWriter({
+        path,
+        header: [
+            {id: 'interval', title: 'Interval'},
+            {id: 'startTime', title: 'Start'},
+            {id: 'endTime', title: 'End'}
+        ]
+    });
+
+    return csvWriter.writeRecords(data);
+}
+
+
+if(process.argv.length > 2){
+    let argv = process.argv.slice(2);
+    resultPath = argv[0];
+}else{
+    log("Please specify path for results.");
+    process.exit(0);
+}
+
+createLogger('info');
+readFilePromise(DEFAULT_CONFIG_PATH).then( (file: string) => {
+    config = JSON.parse(file);
+    config.clients.forEach( (client: ClientConfig, index: number) => {
+        for(let i = 1; i <= client.instances; i++){
+            startTest(client).then((results) => {
+                results.props.then((args) => {
+                    args.forEach( (arg, count) => {
+                        writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`prop_${Object.keys(client.prop_to_read)[count]}`);
+                    });
+                });
+
+                results.actions.then((args) => {
+                    args.forEach( (arg, count) => {
+                        writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`action_${Object.keys(client.actions_to_inv)[count]}`);
+                    });
+                });
+
+                results.events.then((args) => {
+                    args.forEach( (arg, count) => {
+                        writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`event_${client.events_to_sub[count]}`);
+                    });
+                });
+            });
+        }
+    });
+});
+
