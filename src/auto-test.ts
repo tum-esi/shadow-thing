@@ -134,7 +134,7 @@ const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
 
 const runTests = async (numTest: number) => {
     return new Promise(async (resolve, reject) => {
-        let servers = fork('./dist/server-pool.js', ['-c', `./tests/config/${numTest}/S`], {stdio: 'inherit'});
+        let servers = fork('./dist/server-pool.js', ['--max-old-space-size=6000', '-c', `./tests/config/${numTest}/S`], {stdio: 'inherit'});
         await new Promise((resolve) => setTimeout(() => resolve(), 1000));
         execSync(`node ./dist/client-pool.js -c ./tests/config/${numTest}/C ./tests/results/${numTest}`, {stdio: 'inherit'});
         servers.kill();
