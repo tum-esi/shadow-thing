@@ -40,6 +40,21 @@ interface Config {
     servients: Array<ServerConfig>;
 }
 
+const parseArgs = () => {
+    let argv = process.argv.slice(2);
+    let configFlag = false;
+
+    argv.forEach( (arg: string) => {
+        if(configFlag){
+            configFlag = false;
+            configPath = arg;
+        }else if(arg.match(/^-c|--config$/i)){
+            configFlag = true;
+        }
+    });
+}
+
+
 /** Creates a logger for messages from other scripts  */ 
 const createLogger = (logLevel: string) => {
     let logger = winston.createLogger({
@@ -55,9 +70,9 @@ const createLogger = (logLevel: string) => {
     console.error = (msg:string) => logger.error(msg);
 }
 
-/** For specific logging from this script  */
+/** For specific logging from this script */
 const log = (msg: string) => {
-    process.stdout.write("test_server >> " + msg + "\n");
+    process.stdout.write("test-server >> " + msg + "\n");
 }
 
 /** File read which returns a promise */
@@ -143,8 +158,20 @@ const launchMultiThread = () => {
 }
 
 /** Main logic of script */
+var configPath = DEFAULT_CONFIG_PATH;
+parseArgs();
 createLogger('error');
-readFilePromise(DEFAULT_CONFIG_PATH).then( (file: string) => {
+
+process.on('SIGTERM', () => {
+    if(cluster.isMaster){
+        for(let id in cluster.workers){
+            cluster.workers[id].kill();
+        }
+        process.exit(0);
+    }
+});
+
+readFilePromise(configPath).then( (file: string) => {
     config = JSON.parse(file);
     if(cluster.isMaster){
         if(config.mode === 'single'){
@@ -174,6 +201,9 @@ readFilePromise(DEFAULT_CONFIG_PATH).then( (file: string) => {
                         servNum: counter.serv_num
                     });
                 }
+                cluster.on('exit', (worker, code, signal) => {
+                    log(`Worker ${worker.process.pid} died`);
+                });
                 counter.serv_num++;
             });
         }else{
@@ -183,4 +213,4 @@ readFilePromise(DEFAULT_CONFIG_PATH).then( (file: string) => {
         log(`Worker ${cluster.worker.id} started.`);
         launchMultiThread();
     }
-});
+}).catch((err: Error) => console.error(err));

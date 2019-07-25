@@ -1,5 +1,5 @@
 {
-    "mode": "single",
+    "mode": "multi",
     "staticAddress": "127.0.0.1",
     "servients": [
         {

@@ -107,7 +107,7 @@ interface ConfigFile{
     things: ThingConfigList;
 }
 
-const parseArgs = (confPath: string, modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>) => {
+const parseArgs = (modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>) => {
     let argv = process.argv.slice(2);
     let configPresentFlag = false;
     let digitalTwinFlag = false;
@@ -115,7 +115,7 @@ const parseArgs = (confPath: string, modPaths: Array<string>, twinPaths: Array<s
     argv.forEach( (arg: string) => {
         if (configPresentFlag) {
             configPresentFlag = false;
-            confPath = arg;
+            configPath = arg;
 
         } else if (digitalTwinFlag) {
             digitalTwinFlag = false;
@@ -483,7 +483,7 @@ var tdPaths: Array<string> = [];
 
 // Main logic of script
 if(process.argv.length > 2){
-    parseArgs(configPath, modelPaths, twinTdPaths, tdPaths);
+    parseArgs(modelPaths, twinTdPaths, tdPaths);
 }
 
 confirmConfiguration(configPath, tdPaths, twinTdPaths)

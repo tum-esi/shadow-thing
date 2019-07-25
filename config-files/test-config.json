@@ -1,16 +1,30 @@
 {
-    "mode": ["multi"],
-    "protocol": ["coap"], 
+    "modes": ["single", "multi"],
+    "protocols": ["http", "coap"],
     "ports": {
         "start": 5,
         "end": 5 
-    }, 
-    "interval": {
-        "start": 1, 
-        "end": 5, 
+    },
+    "clients": {
+        "start": 1,
+        "end": 2
+    },
+    "prop": {
+        "start": 2,
+        "end": 4,
+        "step": 1
+    },
+    "action": {
+        "start": 1,
+        "end": 2,
+        "step": 1
+    },
+    "event": {
+        "start": 2, 
+        "end": 10, 
         "step": 2
     },
-    "nDataEntries": 10,
+    "nData": 10,
     "tdPath": "./examples/td/coffee_machine_td.json",
     "thingInstance": {
         "start": 10000, 

@@ -1,0 +1,157 @@
+import * as fs from "fs";
+import { join } from "path";
+import { fork, execSync } from "child_process";
+
+import * as WoT from "wot-typescript-definitions";
+
+const TEST_CONFIG_PATH = "./config-files/test-config.json";
+
+interface IntervalConfig {
+    start: number;
+    end: number;
+    step?: number;
+}
+
+interface TestConfig {
+    modes: Array<string>;
+    protocols: Array<string>;
+    ports: IntervalConfig;
+    clients: IntervalConfig;
+    prop: IntervalConfig;
+    action: IntervalConfig;
+    event: IntervalConfig;
+    nData: number;
+    tdPath: string;
+    thingInstance: IntervalConfig;
+}
+
+const log = (msg: string) => {
+    console.log(`auto-test >> ${msg}`);
+}
+
+const readFilePromise = (path: string) => {
+    return new Promise( (resolve, reject) => {
+        fs.readFile(path, 'utf-8', (error, data) => {
+            if(error){
+                reject(error);
+            }
+            resolve(data);
+        });
+    });
+}
+
+const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
+    let counter: number = 0;
+
+    config.modes.forEach( (mode: string) => {
+        config.protocols.forEach( (protocol: string) => {
+            for(let port = config.ports.start; port <= config.ports.end; port++){
+                for(let client = config.clients.start; client <= config.clients.end; client++){
+                    for(let p = config.prop.start; p <= config.prop.end; p += config.prop.step){
+                        for(let a = config.action.start; a <= config.action.end; a += config.action.step){
+                            for(let e = config.event.start; e <= config.event.end; e += config.event.step){
+                                for(let t = config.thingInstance.start; t <= config.thingInstance.end; t += config.thingInstance.step){
+                                    let path = `./tests/config/${counter++}`;
+                                    let portNum: number;
+
+                                    switch(protocol){
+                                        case 'http':
+                                            portNum = 8080; 
+                                            break;
+                                        case 'coap':
+                                            portNum = 5683;
+                                            break;
+                                        case 'mqtt':
+                                            portNum = 1883;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    let clientConfig = {
+                                        staticAddress: '127.0.0.1',
+                                        clients: [
+                                            {
+                                                instances: client,
+                                                protocol,
+                                                thingURL: `127.0.0.1:${portNum}/${thing.title}_1_1`,
+                                                measures: config.nData,
+                                                events_to_sub: [],
+                                                actions_to_inv: {},
+                                                prop_to_read: {}
+                                            }
+                                        ]
+                                    };
+
+                                    let serverConfig = {
+                                        mode,
+                                        staticAddress: '127.0.0.1',
+                                        servients: [
+                                            {
+                                                instances: port,
+                                                protocol,
+                                                things: {
+                                                    [config.tdPath]: {
+                                                        instances: t,
+                                                        eventIntervals: {
+                                                            
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    };
+
+                                    for(let pr in thing.properties){
+                                        clientConfig.clients[0].prop_to_read[pr] = p;
+                                    }
+
+                                    for(let ac in thing.actions){
+                                        clientConfig.clients[0].actions_to_inv[ac] = a;
+                                    }
+                                    
+                                    clientConfig.clients[0].events_to_sub = Object.keys(thing.events);
+
+                                    for(let ev in thing.events){
+                                        serverConfig.servients[0].things[config.tdPath].eventIntervals[ev] = e;
+                                    }
+
+                                    if(!fs.existsSync(path)){
+                                        fs.mkdirSync(path, { recursive: true });
+                                    }
+                                    fs.writeFileSync(join(path, 'S'), JSON.stringify(serverConfig, null, 4));
+                                    fs.writeFileSync(join(path, 'C'), JSON.stringify(clientConfig, null, 4));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+    return counter;
+}
+
+const runTests = async (numTest: number) => {
+    return new Promise(async (resolve, reject) => {
+        let servers = fork('./dist/server-pool.js', ['-c', `./tests/config/${numTest}/S`], {stdio: 'inherit'});
+        await new Promise((resolve) => setTimeout(() => resolve(), 1000));
+        execSync(`node ./dist/client-pool.js -c ./tests/config/${numTest}/C ./tests/results/${numTest}`, {stdio: 'inherit'});
+        servers.kill();
+        resolve();
+    });
+}
+
+readFilePromise(TEST_CONFIG_PATH).then( (config: string) => {
+    let testConfig: TestConfig = JSON.parse(config);
+    readFilePromise(testConfig.tdPath).then( async (thing: WoT.ThingDescription) => {
+        let numTests = generateTests(testConfig, JSON.parse(thing));
+        log(`Number of tests to execute : ${numTests}`);
+        for(let i = 0; i<numTests; i++){
+            log(`Test ${i} started.`);
+            await runTests(i);
+            log(`Test ${i} done.`);
+        }
+    });
+});
+
