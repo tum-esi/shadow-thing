@@ -24,7 +24,7 @@
         "end": 10, 
         "step": 2
     },
-    "nData": 10,
+    "nData": 5,
     "tdPath": "./examples/td/coffee_machine_td.json",
     "thingInstance": {
         "start": 10000, 
