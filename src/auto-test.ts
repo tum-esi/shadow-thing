@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { join } from "path";
-import { fork, execSync } from "child_process";
+import { exec, execSync } from "child_process";
 
 import * as WoT from "wot-typescript-definitions";
 
@@ -134,9 +134,9 @@ const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
 
 const runTests = async (numTest: number) => {
     return new Promise(async (resolve, reject) => {
-        let servers = fork('./dist/server-pool.js', ['--max-old-space-size=6000', '-c', `./tests/config/${numTest}/S`], {stdio: 'inherit'});
+        let servers = exec(`node ./dist/server-pool.js --max-old-space-size=6000 -c ./tests/config/${numTest}/S`);
         await new Promise((resolve) => setTimeout(() => resolve(), 1000));
-        execSync(`node ./dist/client-pool.js -c ./tests/config/${numTest}/C ./tests/results/${numTest}`, {stdio: 'inherit'});
+        execSync(`node ./dist/client-pool.js -c ./tests/config/${numTest}/C ./tests/results/${numTest}`, { stdio: 'inherit' });
         servers.kill();
         resolve();
     });

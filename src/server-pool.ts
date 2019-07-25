@@ -168,6 +168,7 @@ process.on('SIGTERM', () => {
             cluster.workers[id].kill();
         }
         process.exit(0);
+        log("Servers exited");
     }
 });
 
@@ -201,6 +202,7 @@ readFilePromise(configPath).then( (file: string) => {
                         servNum: counter.serv_num
                     });
                 }
+
                 cluster.on('exit', (worker, code, signal) => {
                     log(`Worker ${worker.process.pid} died`);
                 });
