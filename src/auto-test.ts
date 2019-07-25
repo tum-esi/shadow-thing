@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { join } from "path";
-import { exec, execSync } from "child_process";
+import { fork, execSync } from "child_process";
 
 import * as WoT from "wot-typescript-definitions";
 
@@ -15,6 +15,7 @@ interface IntervalConfig {
 interface TestConfig {
     modes: Array<string>;
     protocols: Array<string>;
+    memory_limit: number;
     ports: IntervalConfig;
     clients: IntervalConfig;
     prop: IntervalConfig;
@@ -132,12 +133,13 @@ const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
     return counter;
 }
 
-const runTests = async (numTest: number) => {
+const runTests = async (numTest: number, memLim: number) => {
     return new Promise(async (resolve, reject) => {
-        let servers = exec(`node ./dist/server-pool.js --max-old-space-size=6000 -c ./tests/config/${numTest}/S`);
+        let servers = fork('./dist/server-pool.js', ['-c', `./tests/config/${numTest}/S`], { stdio: 'inherit', execArgv: [`--max-old-space-size=${memLim}`] });
         await new Promise((resolve) => setTimeout(() => resolve(), 1000));
         execSync(`node ./dist/client-pool.js -c ./tests/config/${numTest}/C ./tests/results/${numTest}`, { stdio: 'inherit' });
-        servers.kill();
+        servers.kill('SIGTERM');
+        await new Promise((resolve) => setTimeout(() => resolve(), 10000));
         resolve();
     });
 }
@@ -149,7 +151,7 @@ readFilePromise(TEST_CONFIG_PATH).then( (config: string) => {
         log(`Number of tests to execute : ${numTests}`);
         for(let i = 0; i<numTests; i++){
             log(`Test ${i} started.`);
-            await runTests(i);
+            await runTests(i, testConfig.memory_limit);
             log(`Test ${i} done.`);
         }
     });

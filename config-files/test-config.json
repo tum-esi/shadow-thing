@@ -1,6 +1,7 @@
 {
     "modes": ["single", "multi"],
     "protocols": ["http", "coap"],
+    "memory_limit": 6144,
     "ports": {
         "start": 5,
         "end": 5 

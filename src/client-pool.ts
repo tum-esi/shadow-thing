@@ -92,7 +92,10 @@ const fetchAndConsume = (factory: WoT.WoTFactory, url: string) => {
             await factory.fetch(url).then((fetchedTD: WoT.ThingDescription) => {
                 resolve(factory.consume(fetchedTD));
                 resolved = true;
-            }).catch((err: Error) => log("Error, retrying..."));
+            }).catch(async (err: Error) => {
+                log("Error, retrying...");
+                await new Promise(resolve => setTimeout(() => resolve(), 1000));
+            });
         }
     });
 }

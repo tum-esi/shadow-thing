@@ -167,9 +167,9 @@ process.on('SIGTERM', () => {
         for(let id in cluster.workers){
             cluster.workers[id].kill();
         }
-        process.exit(0);
         log("Servers exited");
     }
+    process.exit(0);
 });
 
 readFilePromise(configPath).then( (file: string) => {
