@@ -4,7 +4,7 @@ import { join } from "path";
 import * as winston from 'winston';
 
 import * as WoT from "wot-typescript-definitions";
-import { Servient, Helpers } from "@node-wot/core";
+import { Servient } from "@node-wot/core";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { MqttClientFactory } from "@node-wot/binding-mqtt";
@@ -30,7 +30,6 @@ interface ClientConfig {
 }
 
 interface Config {
-    staticAddress: string;
     clients: Array<ClientConfig>;
 }
 
@@ -93,8 +92,8 @@ const fetchAndConsume = (factory: WoT.WoTFactory, url: string) => {
                 resolve(factory.consume(fetchedTD));
                 resolved = true;
             }).catch(async (err: Error) => {
-                log("Error, retrying...");
-                await new Promise(resolve => setTimeout(() => resolve(), 1000));
+                log("Error, retrying in 5 seconds...");
+                await new Promise(resolve => setTimeout(() => resolve(), 5000));
             });
         }
     });
@@ -103,7 +102,7 @@ const fetchAndConsume = (factory: WoT.WoTFactory, url: string) => {
 const testProp = (thing: WoT.ConsumedThing, prop: string, delay: number, nbMeasures: number) => {
     return new Promise( (resolve, reject) => {
         let data: Array<object> = [];
-        log(`Starting test for read of <${prop}> every ${delay} seconds.`);
+        log(`Started test for read of <${prop}> every ${delay} seconds.`);
         let interval = setInterval( async () => {
             let startTime = new Date();
             await thing.properties[prop].read();
@@ -125,7 +124,7 @@ const testProp = (thing: WoT.ConsumedThing, prop: string, delay: number, nbMeasu
 const testAction = (thing: WoT.ConsumedThing, action: string, delay: number, nbMeasures: number) => {
     return new Promise( (resolve, reject) => {
         let data: Array<object> = [];
-        log(`Starting test for invoke of <${action}> every ${delay} seconds.`);
+        log(`Started test for invoke of <${action}> every ${delay} seconds.`);
         let interval = setInterval( async () => {
             let startTime = new Date();
             if(thing.actions[action].input){
@@ -152,7 +151,7 @@ const testEvent = (thing: WoT.ConsumedThing, event: string, nbMeasures: number) 
     return new Promise( (resolve, reject) => {
         let startTime = new Date();
         let data: Array<object> = [];
-        log(`Starting test for subscription of <${event}> for ${nbMeasures} emissions.`);
+        log(`Started test for subscription of <${event}> for ${nbMeasures} emissions.`);
         let subscription = thing.events[event].subscribe(
             () => {
                 let endTime = new Date();
@@ -174,8 +173,6 @@ const testEvent = (thing: WoT.ConsumedThing, event: string, nbMeasures: number) 
 }
 
 const startTest = (clientConfig: ClientConfig) => {
-    Helpers.setStaticAddress(config.staticAddress);
-
     let servient = new Servient();
 
     if(clientConfig.protocol === "http"){

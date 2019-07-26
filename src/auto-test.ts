@@ -52,7 +52,7 @@ const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
                         for(let a = config.action.start; a <= config.action.end; a += config.action.step){
                             for(let e = config.event.start; e <= config.event.end; e += config.event.step){
                                 for(let t = config.thingInstance.start; t <= config.thingInstance.end; t += config.thingInstance.step){
-                                    let path = `./tests/config/${counter++}`;
+                                    let path = `./tests/config/${++counter}`;
                                     let portNum: number;
 
                                     switch(protocol){
@@ -133,27 +133,27 @@ const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
     return counter;
 }
 
-const runTests = async (numTest: number, memLim: number) => {
-    return new Promise(async (resolve, reject) => {
-        let servers = fork('./dist/server-pool.js', ['-c', `./tests/config/${numTest}/S`], { stdio: 'inherit', execArgv: [`--max-old-space-size=${memLim}`] });
-        await new Promise((resolve) => setTimeout(() => resolve(), 1000));
-        execSync(`node ./dist/client-pool.js -c ./tests/config/${numTest}/C ./tests/results/${numTest}`, { stdio: 'inherit' });
-        servers.kill('SIGTERM');
-        await new Promise((resolve) => setTimeout(() => resolve(), 10000));
-        resolve();
+const runTests = async (currentTest: number, numTests: number, memLim: number) => {
+    log(`Test ${currentTest} started`);
+    let servers = fork('./dist/server-pool.js', ['-c', `./tests/config/${currentTest}/S`], { stdio: 'inherit', execArgv: [`--max-old-space-size=${memLim}`] });
+    servers.on('close', (code, signal) => {
+        log(`Test ${currentTest} done`);
+        if(currentTest === numTests){
+            process.exit(0);
+        }
+        runTests(++currentTest, numTests, memLim);
     });
+    await new Promise((resolve) => setTimeout(() => resolve(), 1000));
+    execSync(`node ./dist/client-pool.js -c ./tests/config/${currentTest}/C ./tests/results/${currentTest}`, { stdio: 'inherit' });
+    servers.kill();
 }
 
 readFilePromise(TEST_CONFIG_PATH).then( (config: string) => {
     let testConfig: TestConfig = JSON.parse(config);
-    readFilePromise(testConfig.tdPath).then( async (thing: WoT.ThingDescription) => {
+    readFilePromise(testConfig.tdPath).then( (thing: WoT.ThingDescription) => {
         let numTests = generateTests(testConfig, JSON.parse(thing));
         log(`Number of tests to execute : ${numTests}`);
-        for(let i = 0; i<numTests; i++){
-            log(`Test ${i} started.`);
-            await runTests(i, testConfig.memory_limit);
-            log(`Test ${i} done.`);
-        }
+        runTests(1, numTests, testConfig.memory_limit);
     });
 });
 

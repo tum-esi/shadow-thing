@@ -161,20 +161,27 @@ const launchMultiThread = () => {
 var configPath = DEFAULT_CONFIG_PATH;
 parseArgs();
 createLogger('error');
-
-process.on('SIGTERM', () => {
-    if(cluster.isMaster){
-        for(let id in cluster.workers){
-            cluster.workers[id].kill();
-        }
-        log("Servers exited");
-    }
-    process.exit(0);
-});
-
 readFilePromise(configPath).then( (file: string) => {
     config = JSON.parse(file);
     if(cluster.isMaster){
+        if(config.mode === "multi"){
+            process.on('SIGTERM', async () => {
+                for(let id in cluster.workers){
+                    log(`Killing worker ${id}.`);
+                    cluster.workers[id].kill();
+                }
+                cluster.disconnect( () => {
+                    log("Servers exited.");
+                    process.exit(0);
+                });
+            });
+        }else{
+            process.on('SIGTERM', () => {
+                log("Servers exited.");
+                process.exit(0);
+            });
+        }
+
         if(config.mode === 'single'){
             launchSingleThread();
         }else if(config.mode === 'multi'){
@@ -202,10 +209,6 @@ readFilePromise(configPath).then( (file: string) => {
                         servNum: counter.serv_num
                     });
                 }
-
-                cluster.on('exit', (worker, code, signal) => {
-                    log(`Worker ${worker.process.pid} died`);
-                });
                 counter.serv_num++;
             });
         }else{
