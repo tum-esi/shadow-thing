@@ -232,6 +232,7 @@ const writeResultFile = (data: Array<object>, pathName: string, fileName: string
 
 var configPath: string = DEFAULT_CONFIG_PATH;
 var resultPath: string;
+var tasks = [];
 
 parseArgs();
 createLogger('info');
@@ -240,22 +241,36 @@ readFilePromise(configPath).then( (file: string) => {
     config.clients.forEach( (client: ClientConfig, index: number) => {
         for(let i = 1; i <= client.instances; i++){
             startTest(client).then((results) => {
-                results.props.then((args) => {
-                    args.forEach( (arg, count) => {
-                        writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`prop_${Object.keys(client.prop_to_read)[count]}`);
+                tasks.push(new Promise((resolve, reject) => {
+                    results.props.then((args) => {
+                        args.forEach( (arg, count) => {
+                            tasks.push(writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`prop_${Object.keys(client.prop_to_read)[count]}`));
+                        });
+                        resolve();
                     });
-                });
+                }));
 
-                results.actions.then((args) => {
-                    args.forEach( (arg, count) => {
-                        writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`action_${Object.keys(client.actions_to_inv)[count]}`);
+                tasks.push(new Promise((resolve, reject) => {
+                    results.actions.then((args) => {
+                        args.forEach( (arg, count) => {
+                            tasks.push(writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`action_${Object.keys(client.actions_to_inv)[count]}`));
+                        });
+                        resolve();
                     });
-                });
+                }));
 
-                results.events.then((args) => {
-                    args.forEach( (arg, count) => {
-                        writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`event_${client.events_to_sub[count]}`);
+                tasks.push(new Promise((resolve, reject) => {
+                    results.events.then((args) => {
+                        args.forEach( (arg, count) => {
+                            tasks.push(writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`event_${client.events_to_sub[count]}`));
+                        });
+                        resolve();
                     });
+                }));
+
+                Promise.all(tasks).then( () => {
+                    log("Closing clients.");
+                    process.exit(0); 
                 });
             });
         }
