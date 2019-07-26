@@ -101,14 +101,14 @@ interface ConfigFile{
     things: ThingConfigList;
 }
 
-const parseArgs = (confPath: string, tDescPaths: Array<string>) => {
+const parseArgs = (tDescPaths: Array<string>) => {
     let argv = process.argv.slice(2);
     let configPresentFlag = false;
         
     argv.forEach( (arg: string) => {
         if (configPresentFlag) {
             configPresentFlag = false;
-            confPath = arg;
+            configPath = arg;
 
         } else if (arg.match(/^(-c|--configfile)$/i)) {
             configPresentFlag = true;
@@ -430,7 +430,7 @@ var tdPaths: Array<string> = [];
 
 // Main logic of script
 if(process.argv.length > 2){
-    parseArgs(configPath, tdPaths);
+    parseArgs(tdPaths);
 }
 
 confirmConfiguration(configPath, tdPaths)
