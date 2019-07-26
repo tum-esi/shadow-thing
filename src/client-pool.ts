@@ -242,28 +242,31 @@ readFilePromise(configPath).then( (file: string) => {
         for(let i = 1; i <= client.instances; i++){
             startTest(client).then((results) => {
                 tasks.push(new Promise((resolve, reject) => {
-                    results.props.then((args) => {
-                        args.forEach( (arg, count) => {
-                            tasks.push(writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`prop_${Object.keys(client.prop_to_read)[count]}`));
-                        });
+                    results.props.then( async (args) => {
+                        let nProp= 0;
+                        for(let arg of args){
+                            await writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`prop_${Object.keys(client.prop_to_read)[nProp++]}`);
+                        }
                         resolve();
                     });
                 }));
 
                 tasks.push(new Promise((resolve, reject) => {
-                    results.actions.then((args) => {
-                        args.forEach( (arg, count) => {
-                            tasks.push(writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`action_${Object.keys(client.actions_to_inv)[count]}`));
-                        });
+                    results.actions.then( async (args) => {
+                        let nAction= 0;
+                        for(let arg of args){
+                            await writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`action_${Object.keys(client.actions_to_inv)[nAction++]}`);
+                        }
                         resolve();
                     });
                 }));
 
                 tasks.push(new Promise((resolve, reject) => {
-                    results.events.then((args) => {
-                        args.forEach( (arg, count) => {
-                            tasks.push(writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`event_${client.events_to_sub[count]}`));
-                        });
+                    results.events.then( async (args) => {
+                        let nEvent= 0;
+                        for(let arg of args){
+                            await writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`event_${client.events_to_sub[nEvent++]}`);
+                        }
                         resolve();
                     });
                 }));
