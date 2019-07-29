@@ -1,4 +1,4 @@
-version: '2'
+version: '2.2'
 services:
     server-pool:
         build:
@@ -6,6 +6,8 @@ services:
             dockerfile: "Dockerfile.server"
         ports:
             - "8080:8080"
+        cpu_count: 3
+        mem_limit: 4000m
     client-pool:
         build:
             context: "."
