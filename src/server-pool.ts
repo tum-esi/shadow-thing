@@ -15,6 +15,7 @@ const DEFAULT_CONFIG_PATH = "./config-files/server-config.json";
 
 let config: Config;
 
+/** Interfaces for typescript type check */
 interface IntervalConfig {
     [key:string]: number;
 }
@@ -40,6 +41,7 @@ interface Config {
     servients: Array<ServerConfig>;
 }
 
+/** Parses inputs transmitted from script run (Terminal)  */
 const parseArgs = () => {
     let argv = process.argv.slice(2);
     let configFlag = false;
@@ -54,8 +56,9 @@ const parseArgs = () => {
     });
 }
 
-
-/** Creates a logger for messages from other scripts  */ 
+/** Creates a logger for messages from other scripts  
+ *  @param logLevel - A string representing the level of output to print in console
+ */  
 const createLogger = (logLevel: string) => {
     let logger = winston.createLogger({
         level: logLevel,
@@ -70,12 +73,16 @@ const createLogger = (logLevel: string) => {
     console.error = (msg:string) => logger.error(msg);
 }
 
-/** For specific logging from this script */
+/** For specific logging from this script 
+ *  @param msg - A string representing the message to print.
+ */
 const log = (msg: string) => {
     process.stdout.write("test-server >> " + msg + "\n");
 }
 
-/** File read which returns a promise */
+/** File read which returns a promise 
+ *  @param path - A string representing path where the file is located
+ */
 const readFilePromise = (path: string) => {
     return new Promise( (resolve, reject) => {
         readFile(path, 'utf-8', (error, data) => {
@@ -87,7 +94,11 @@ const readFilePromise = (path: string) => {
     })
 }
 
-/** Initialises a servient and the things hosted on it after */
+/** Initialises a servient and the things hosted on it after 
+ *  @param servConfig - A ServerConfig which contains various variables for the configuration of servients
+ *  @param servNum - A number which acts as a unique identifier of the servient
+ *  @param portPos - A number which indicates the offset from the default port for a protocol
+ */
 const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) => {
     Helpers.setStaticAddress(config.staticAddress);
         
@@ -100,6 +111,7 @@ const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) 
             servient.addServer( new CoapServer(5683 + portPos) );
             break;
         case 'mqtt':
+            //TODO?
             break;
         default:
             console.error("Unknown protocol specified.");
@@ -114,7 +126,12 @@ const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) 
     });
 }
 
-/** Initiate virtual-thing */
+/** Initiate virtual-thing 
+ *  @param tdPath - A string indicating the path of the json file which contains the ThingDescription
+ *  @param thingFactory - A WoTFactory attached to the servient which is used to spawn things
+ *  @param servNum - A number indicating the unique identifier of a servient
+ *  @param thingConf - A configuration object for creating the thing
+ */
 const initThings = async (tdPath: string, thingFactory: WoT.WoTFactory, servNum: number, thingConf: ThingConfig) => {
     await readFilePromise(tdPath).then( (td:WoT.ThingDescription) => {
         let jsonTd: WoT.ThingInstance = JSON.parse(td);

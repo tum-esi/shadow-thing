@@ -1,6 +1,6 @@
 {
     "mode": "single",
-    "staticAddress": "192.168.0.117",
+    "staticAddress": "server-pool",
     "servients": [
         {
             "instances": 1,

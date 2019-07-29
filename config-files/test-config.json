@@ -11,17 +11,17 @@
         "end": 2
     },
     "prop": {
-        "start": 2,
-        "end": 4,
+        "start": 5,
+        "end": 5,
         "step": 1
     },
     "action": {
-        "start": 1,
-        "end": 2,
+        "start": 10,
+        "end": 10,
         "step": 1
     },
     "event": {
-        "start": 2, 
+        "start": 10, 
         "end": 10, 
         "step": 2
     },

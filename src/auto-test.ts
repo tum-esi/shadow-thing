@@ -26,6 +26,15 @@ interface TestConfig {
     thingInstance: IntervalConfig;
 }
 
+const parseArgs = () => {
+    let argv = process.argv.slice(2);
+    argv.forEach( (arg: string) => {
+        if(arg.match(/^-g$/i)){
+            generateOnly = true;
+        }
+    });
+}
+
 const log = (msg: string) => {
     console.log(`auto-test >> ${msg}`);
 }
@@ -148,11 +157,16 @@ const runTests = async (currentTest: number, numTests: number, memLim: number) =
     servers.kill();
 }
 
+var generateOnly = false;
+parseArgs();
 readFilePromise(TEST_CONFIG_PATH).then( (config: string) => {
     let testConfig: TestConfig = JSON.parse(config);
     readFilePromise(testConfig.tdPath).then( (thing: WoT.ThingDescription) => {
         let numTests = generateTests(testConfig, JSON.parse(thing));
         log(`Number of tests to execute : ${numTests}`);
+        if(generateOnly){
+            return;
+        }
         runTests(1, numTests, testConfig.memory_limit);
     });
 });

@@ -2,9 +2,9 @@
     "staticAddress": "127.0.0.1",
     "clients": [
         {
-            "instances": 3,
+            "instances": 1,
             "protocol": "http",
-            "thingURL": "192.168.0.117:8080/Virtual-Coffee-Machine_1_1",
+            "thingURL": "server-pool:8080/Virtual-Coffee-Machine_1_1",
             "measures": 3,
             "events_to_sub": ["error"],
             "actions_to_inv": {
