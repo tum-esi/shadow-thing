@@ -1,5 +1,4 @@
 {
-    "staticAddress": "127.0.0.1",
     "clients": [
         {
             "instances": 1,
