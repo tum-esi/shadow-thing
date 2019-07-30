@@ -6,7 +6,7 @@
 		"outDir": "dist",
 		"alwaysStrict": true,
 		"sourceMap": true,
-		"noImplicitAny": true,
+		"noImplicitAny": false,
 		"removeComments": true,
 		"noLib": false,
 		"preserveConstEnums": true,

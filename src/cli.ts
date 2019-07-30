@@ -107,7 +107,7 @@ interface ConfigFile{
     things: ThingConfigList;
 }
 
-const parseArgs = (confPath: string, modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>) => {
+const parseArgs = (modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>) => {
     let argv = process.argv.slice(2);
     let configPresentFlag = false;
     let digitalTwinFlag = false;
@@ -115,7 +115,7 @@ const parseArgs = (confPath: string, modPaths: Array<string>, twinPaths: Array<s
     argv.forEach( (arg: string) => {
         if (configPresentFlag) {
             configPresentFlag = false;
-            confPath = arg;
+            configPath = arg;
 
         } else if (digitalTwinFlag) {
             digitalTwinFlag = false;
@@ -431,10 +431,11 @@ virtual-thing examples/td/coffee_machine_td.json
 virtual-thing -t examples/td/coffee_machine_td.json
 virtual-thing -c virtual-thing.conf.json examples/td/coffee_machine_td.json
 
-If no TD is given, the default TD examples/td/coffee_machine_td.json is used.
-If the file 'virtual-thing.conf.json' exists, it is used for configuration.
+If no TD is given, a default one is generated on runtime. The user is then
+prompted to whether accept or reject using the generated configuration.
+Upon rejection, a questionnaire will be executed to provide basic configuration.
 
-virtual-thing.conf.json syntax:
+configuration file syntax:
 {
  "servient": {
      "staticAddress": STATIC,
@@ -483,7 +484,7 @@ var tdPaths: Array<string> = [];
 
 // Main logic of script
 if(process.argv.length > 2){
-    parseArgs(configPath, modelPaths, twinTdPaths, tdPaths);
+    parseArgs(modelPaths, twinTdPaths, tdPaths);
 }
 
 confirmConfiguration(configPath, tdPaths, twinTdPaths)

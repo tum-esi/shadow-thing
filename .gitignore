@@ -12,3 +12,6 @@ dist/
 
 # ignore package-lock.json as not part of published module and might cause break
 package-lock.json
+
+# ignore directory for test results
+test_results
