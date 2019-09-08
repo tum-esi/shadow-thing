@@ -284,6 +284,10 @@ docker-compose up
 * To make custom tests, you should edit the default configuration files.
 * The results of the tests will be located at `/app/results` in the client container.
 
+### Docker Help
+
+* Once the test finishes, the container will be shutdown automatically. To see the previously run 20 containers, use `docker container ls --last 20`.
+
 ## Useful Links:
 1. [Thing Description Specification](https://w3c.github.io/wot-thing-description/#thing)
 2. [Scripting API Specification](https://w3c.github.io/wot-scripting-api/)
