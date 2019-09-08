@@ -226,44 +226,44 @@ Tests done by the `client-pool` can be automated by running :
 ```
 node dist/auto-test.js
 ```
-This command runs tests based on a configuration file which can be found in the `config-files` directory. It first generates all the corresponding configuration files for `server-pool` and `client-pool` and then executes them one by one.
+This command runs tests based on a configuration file which can be found in the `config-files` directory. It first generates all the corresponding configuration files for `server-pool` and `client-pool` and then executes them one by one. This happens in a single container.
 
 Below is an example of how a configuration file for testing should look like:
 ```JSON
 {
-    "modes": [],
+    "modes": [], //applies only to server
     "protocols": [],
     "memory_limit": MEM_LIMIT,
     "ports":{
         "start": NUM_PORT,
         "end": NUM_PORT
-    },
+    }, //applies only to server
     "clients":{
         "start": NUM_CLIENT,
         "end": NUM_CLIENT
-    },
+    }, //applies only to client
     "prop":{
         "start": INTERVAL,
         "end": INTERVAL,
         "step": INTERVAL
-    },
+    }, //applies only to client
     "action":{
         "start": INTERVAL,
         "end": INTERVAL,
         "step": INTERVAL
-    },
+    }, //applies only to client
     "event":{
         "start": INTERVAL,
         "end": INTERVAL,
         "step": INTERVAL
-    },
-    "nData": NUM_MEASURES,
+    }, //applies only to server
+    "nData": NUM_MEASURES, //applies only to client
     "tdPath": PATH_TO_TD,
     "thingInstance":{
         "start": NUM_INSTANCE,
         "end": NUM_INSTANCE,
         "step": NUM_INSTANCE
-    }
+    } //applies only to server
 }
 ```
 #### Notes:

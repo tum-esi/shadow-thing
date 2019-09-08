@@ -56,7 +56,7 @@ const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
     config.modes.forEach( (mode: string) => {
         config.protocols.forEach( (protocol: string) => {
             for(let port = config.ports.start; port <= config.ports.end; port++){
-                for(let client = config.clients.start; client <= config.clients.end; client++){
+                for (let client = config.clients.start; client <= config.clients.end; client += config.clients.step){
                     for(let p = config.prop.start; p <= config.prop.end; p += config.prop.step){
                         for(let a = config.action.start; a <= config.action.end; a += config.action.step){
                             for(let e = config.event.start; e <= config.event.end; e += config.event.step){
