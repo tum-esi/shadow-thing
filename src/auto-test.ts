@@ -161,6 +161,10 @@ var generateOnly = false;
 parseArgs();
 readFilePromise(TEST_CONFIG_PATH).then( (config: string) => {
     let testConfig: TestConfig = JSON.parse(config);
+    if (!fs.existsSync(`./tests`)) {
+        fs.mkdirSync(`./tests`, { recursive: true });
+    }
+    fs.copyFileSync(TEST_CONFIG_PATH, `./tests/test-config.json`); // to know the config for all the tests
     readFilePromise(testConfig.tdPath).then( (thing: WoT.ThingDescription) => {
         let numTests = generateTests(testConfig, JSON.parse(thing));
         log(`Number of tests to execute : ${numTests}`);

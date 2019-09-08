@@ -287,6 +287,10 @@ docker-compose up
 ### Docker Help
 
 * Once the test finishes, the container will be shutdown automatically. To see the previously run 20 containers, use `docker container ls --last 20`.
+* `docker build -t ege/test1 .` once the configuration is set, it will build the image that you can run
+* `docker run -d --memory 10240m --cpuset-cpus="0-1" ege/test3` will run it with this given name but this is not the name of the container, that will be assigned automatically
+* `docker cp stupefied_mendel:app/tests ./` to copy test to current folder
+* `docker build -f NEWDOCKERFILE` allows you to pass other docker files
 
 ## Useful Links:
 1. [Thing Description Specification](https://w3c.github.io/wot-thing-description/#thing)

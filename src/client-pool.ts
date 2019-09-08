@@ -109,8 +109,10 @@ const testProp = (thing: WoT.ConsumedThing, prop: string, delay: number, nbMeasu
             let endTime = new Date();
             data.push({
                 interval: endTime.getTime() - startTime.getTime(),
-                startTime,
-                endTime
+                startTimeFormatted:startTime,
+                endTimeFormatted:endTime,
+                startTimeMS: startTime.getTime(),
+                endTimeMS: endTime.getTime()
             });
 
             if(data.length >= nbMeasures){
@@ -135,8 +137,10 @@ const testAction = (thing: WoT.ConsumedThing, action: string, delay: number, nbM
             let endTime = new Date();
             data.push({
                 interval: endTime.getTime() - startTime.getTime(),
-                startTime,
-                endTime
+                startTimeFormatted: startTime,
+                endTimeFormatted: endTime,
+                startTimeMS: startTime.getTime(),
+                endTimeMS: endTime.getTime()
             });
 
             if(data.length >= nbMeasures){
@@ -157,8 +161,10 @@ const testEvent = (thing: WoT.ConsumedThing, event: string, nbMeasures: number) 
                 let endTime = new Date();
                 data.push({
                     interval: endTime.getTime() - startTime.getTime(),
-                    startTime,
-                    endTime
+                    startTimeFormatted: startTime,
+                    endTimeFormatted: endTime,
+                    startTimeMS: startTime.getTime(),
+                    endTimeMS: endTime.getTime()
                 });
                 startTime = new Date();
 
@@ -220,9 +226,11 @@ const writeResultFile = (data: Array<object>, pathName: string, fileName: string
     let csvWriter = require('csv-writer').createObjectCsvWriter({
         path,
         header: [
-            {id: 'interval', title: 'Interval'},
-            {id: 'startTime', title: 'Start'},
-            {id: 'endTime', title: 'End'}
+            {id: 'interval', title: 'Interval in ms'},
+            {id: 'startTimeFormatted', title: 'Start Time in Readable Format'},
+            { id: 'endTimeFormatted', title: 'End Time in Readable Format'},
+            { id: 'startTimeMS', title: 'Start Time in ms' },
+            { id: 'endTimeMS', title: 'End Time in ms' }
         ]
     });
 
@@ -245,7 +253,7 @@ readFilePromise(configPath).then( (file: string) => {
                     results.props.then( async (args) => {
                         let nProp= 0;
                         for(let arg of args){
-                            await writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`prop_${Object.keys(client.prop_to_read)[nProp++]}`);
+                            await writeResultFile(arg, join(resultPath, `#${index + 1}/instance_${i}`), `prop_${Object.keys(client.prop_to_read)[nProp++]}.csv`);
                         }
                         resolve();
                     });
@@ -255,7 +263,7 @@ readFilePromise(configPath).then( (file: string) => {
                     results.actions.then( async (args) => {
                         let nAction= 0;
                         for(let arg of args){
-                            await writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`action_${Object.keys(client.actions_to_inv)[nAction++]}`);
+                            await writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`action_${Object.keys(client.actions_to_inv)[nAction++]}.csv`);
                         }
                         resolve();
                     });
@@ -265,7 +273,7 @@ readFilePromise(configPath).then( (file: string) => {
                     results.events.then( async (args) => {
                         let nEvent= 0;
                         for(let arg of args){
-                            await writeResultFile(arg, join(resultPath, `#${index+1}/instance_${i}`),`event_${client.events_to_sub[nEvent++]}`);
+                            await writeResultFile(arg, join(resultPath, `#${index + 1}/instance_${i}`), `event_${client.events_to_sub[nEvent++]}.csv`);
                         }
                         resolve();
                     });

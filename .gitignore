@@ -15,3 +15,4 @@ package-lock.json
 
 # ignore directory for test results
 test_results
+tests

@@ -14,3 +14,4 @@ services:
             dockerfile: "Dockerfile.client"
         depends_on:
             - "server-pool"
+        cpu_count: 2
