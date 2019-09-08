@@ -1,8 +1,8 @@
 {
   "name": "virtual-thing",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Creates and deploys a virtual thing based on its TD",
-  "author": "Hassib Belhaj <https://github.com/hasbel>",
+  "author": "Assistant Professorship of Embedded Systems and Internet of Things  <https://github.com/tum-ei-esi/>",
   "license": "MIT",
   "main": "dist/virtual-thing",
   "types": "dist/virtual-thing.d.ts",
@@ -42,7 +42,7 @@
     "inquirer": "6.4.1",
     "is-utf8": "0.2.1",
     "json-schema-faker": "0.4.7",
-    "jsonld": "1.1.0",
+    "jsonld": "1.7.0",
     "winston": "3.1.0",
     "wot-typescript-definitions": "0.6.2"
   },
