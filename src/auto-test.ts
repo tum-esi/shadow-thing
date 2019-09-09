@@ -18,6 +18,9 @@ interface TestConfig {
     memory_limit: number;
     ports: IntervalConfig;
     clients: IntervalConfig;
+    testProperties: boolean;
+    testActions: boolean;
+    testEvents: boolean;
     prop: IntervalConfig;
     action: IntervalConfig;
     event: IntervalConfig;
@@ -112,16 +115,22 @@ const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
                                         ]
                                     };
 
-                                    for(let pr in thing.properties){
-                                        clientConfig.clients[0].prop_to_read[pr] = p;
+                                    if (config.testProperties){
+                                        for(let pr in thing.properties){
+                                            clientConfig.clients[0].prop_to_read[pr] = p;
+                                        }
                                     }
 
-                                    for(let ac in thing.actions){
-                                        clientConfig.clients[0].actions_to_inv[ac] = a;
+                                    if (config.testActions) {
+                                        for(let ac in thing.actions){
+                                            clientConfig.clients[0].actions_to_inv[ac] = a;
+                                        }
                                     }
                                     
-                                    clientConfig.clients[0].events_to_sub = Object.keys(thing.events);
-
+                                    if (config.testEvents) {
+                                        clientConfig.clients[0].events_to_sub = Object.keys(thing.events);
+                                    }
+                                        
                                     for(let ev in thing.events){
                                         serverConfig.servients[0].things[config.tdPath].eventIntervals[ev] = e;
                                     }
