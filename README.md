@@ -20,6 +20,14 @@ Install the Windows build tools through a CMD shell as administrator:
 ```
 npm install -g --production windows-build-tools
 ```
+In the [package.json](./package.json) change `scripts > "preinstall"` from:
+```json
+"preinstall": "npm run pre:default",
+```
+to:
+```json
+"preinstall": "npm run pre:windows",
+```
 
 ### Mac OS
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
