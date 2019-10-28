@@ -55,9 +55,9 @@ export class VirtualThing {
     }
     
     /**
-     * The prefixes "P:"", "A:" and "E:" are used to determine 
-     * the class of the following console output. (Property,
-     * Action and Event)
+     * The prefixes "PR:", "PW:", "A:" and "E:" are used to determine 
+     * the class of the following console output. (Property Read,
+     * Property Write, Action and Event)
      */
 
     /** Add read and write handlers for properties. use JSON Faker */
@@ -69,7 +69,7 @@ export class VirtualThing {
                     property,
                     () => { 
                         return new Promise( (resolve, reject) => { 
-                            console.info("P: Property read: " + property); 
+                            console.info("PR: Property read: " + property); 
                             resolve(jsf(this.thing.properties[property]));
                         } );
                     }
@@ -86,6 +86,8 @@ export class VirtualThing {
                                 console.warn("WARNING: Invalid input received for property: " + property);
                                 reject(new Error("Invalid property data."));
                                 return;
+                            } else {
+                                console.info("PW: Property write value: " + received + " to property: " + property);
                             }
 
                             // Update the read handler to always return the written value.
