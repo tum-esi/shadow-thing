@@ -1,6 +1,6 @@
 {
   "name": "virtual-thing",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Creates and deploys a virtual thing based on its TD",
   "author": "Assistant Professorship of Embedded Systems and Internet of Things  <https://github.com/tum-ei-esi/>",
   "license": "MIT",
