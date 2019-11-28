@@ -148,6 +148,8 @@ const initThings = async (tdPath: string, thingFactory: WoT.WoTFactory, servNum:
                     eventIntervals: thingConf.eventIntervals
                 }
             ).expose()
+            var endTime = new Date();
+            log(String(endTime.getTime() - startTime.getTime()));
             log("exposed instance " + i + " " + servNum*i);
         }
     });
@@ -177,6 +179,8 @@ const launchMultiThread = () => {
 }
 
 /** Main logic of script */
+var startTime = new Date();
+
 var configPath = DEFAULT_CONFIG_PATH;
 parseArgs();
 createLogger('error');
