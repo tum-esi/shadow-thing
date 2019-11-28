@@ -58,6 +58,12 @@ export class VirtualThing {
             process.exit();
         }
     }
+    
+    /**
+     * The prefixes "PR:", "PW:", "A:" and "E:" are used to determine 
+     * the class of the following console output. (Property Read,
+     * Property Write, Action and Event)
+     */
 
     /** Add read and write handlers for properties. use JSON Faker */
     private addPropertyHandlers() {
@@ -68,7 +74,7 @@ export class VirtualThing {
                     property,
                     () => { 
                         return new Promise( (resolve, reject) => { 
-                            console.info("Property read: " + property); 
+                            console.info("PR: Property read: " + property); 
                             resolve(jsf(this.thing.properties[property]));
                         } );
                     }
@@ -85,6 +91,8 @@ export class VirtualThing {
                                 console.warn("WARNING: Invalid input received for property: " + property);
                                 reject(new Error("Invalid property data."));
                                 return;
+                            } else {
+                                console.info("PW: Property write value: " + received + " to property: " + property);
                             }
 
                             // Update the read handler to always return the written value.
@@ -114,10 +122,10 @@ export class VirtualThing {
                                 reject(new Error("Invalid action input."));
                                 return;
                             }else{
-                                console.info("Action -" + action + "- triggered with input: " + JSON.stringify(received));
+                                console.info("A: Action -" + action + "- triggered with input: " + JSON.stringify(received));
                             }
                         }else{
-                            console.info("Action -" + action + "- triggered.");
+                            console.info("A: Action -" + action + "- triggered.");
                         }                    
 
                         if (this.thingDescription.actions[action].output) { 
@@ -141,7 +149,7 @@ export class VirtualThing {
             if (this.config.eventIntervals[event] !== 0) {
                 setInterval( 
                     async () => {
-                        console.info("Emitting event: " + event);
+                        console.info("E: Emitting event: " + event);
                         console.info("Next in: " + interval/1000 + "s");
                         let emittedMessage = this.thingDescription.events[event].data ? jsf(this.thingDescription.events[event].data) : ""
                         this.thing.events[event].emit(emittedMessage);
