@@ -120,6 +120,7 @@ const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) 
     }
 
     servient.start().then( (factory: WoT.WoTFactory) => {
+        log("servient started " + servNum + "at port diff" + portPos)
         for(let thingPath in servConfig.things){
             initThings(thingPath, factory, servNum, servConfig.things[thingPath]);
         }
@@ -146,7 +147,8 @@ const initThings = async (tdPath: string, thingFactory: WoT.WoTFactory, servNum:
                 {
                     eventIntervals: thingConf.eventIntervals
                 }
-            ).expose();
+            ).expose()
+            log("exposed instance " + i + " " + servNum*i);
         }
     });
 }

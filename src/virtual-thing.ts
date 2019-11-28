@@ -11,6 +11,10 @@ var schemaLocation = path.join(__dirname, '..', 'validation-schemas' ,'td-json-s
 var schema = fs.readFileSync(schemaLocation);
 ajv.addSchema(schema, 'td');
 
+// const log = (msg: string) => {
+//     process.stdout.write("test-server >> " + msg + "\n");
+// }
+
 /** Class representing a virtual WoT thing */
 export class VirtualThing {
     public readonly config: any;
@@ -43,6 +47,7 @@ export class VirtualThing {
     /** Expose the virtual thing on the servient */
     public expose() {
         this.thing.expose();
+        // log("Exposed")
     }
     
     /** Validate this.thingDescription **/
