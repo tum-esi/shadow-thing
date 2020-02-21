@@ -1,0 +1,39 @@
+{
+    "modes": ["single"],
+    "protocols": ["http"],
+    "memory_limit": 10240,
+    "ports": {
+        "start": 1,
+        "end": 1
+    },
+    "clients": {
+        "start": 1,
+        "end": 1,
+        "step": 1
+    },
+    "testProperties": true,
+    "testActions": true,
+    "testEvents": false,
+    "prop": {
+        "start": 1,
+        "end": 1,
+        "step": 1
+    },
+    "action": {
+        "start": 2,
+        "end": 2,
+        "step": 2
+    },
+    "event": {
+        "start": 0,
+        "end": 0,
+        "step": 1
+    },
+    "nData": 1,
+    "tdPath": "./examples/td/coffee_machine_td.json",
+    "thingInstance": {
+        "start": 1,
+        "end": 1,
+        "step": 1
+    }
+}
