@@ -288,7 +288,7 @@ It is also possible to execute tests using the default configuration files `serv
 docker-compose up
 ```
 ### Notes:
-* When running tests between containers, the static address should be set to `server-pool`.
+* When running tests between containers, the static address of the servers should be set to `server-pool`.
 * To make custom tests, you should edit the default configuration files.
 * The results of the tests will be located at `/app/results` in the client container.
 
