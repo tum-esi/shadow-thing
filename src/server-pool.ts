@@ -150,7 +150,12 @@ const initThings = async (tdPath: string, thingFactory: WoT.WoTFactory, servNum:
             ).expose()
             var endTime = new Date();
             log(String(endTime.getTime() - startTime.getTime()));
-            log("exposed instance " + i + " " + servNum*i);
+            var curThingNb = servNum * i
+            log("exposed instance " + i + " " + curThingNb);
+            if (curThingNb > maxThing){
+                maxThing = curThingNb
+            }
+            log("max is"+String(maxThing))
         }
     });
 }
@@ -179,8 +184,8 @@ const launchMultiThread = () => {
 }
 
 /** Main logic of script */
-var startTime = new Date();
-
+var startTime = new Date(); // To track how long it takes to measure instantiation
+var maxThing = 0; // this is used to track how many Things are created
 var configPath = DEFAULT_CONFIG_PATH;
 parseArgs();
 createLogger('error');
