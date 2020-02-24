@@ -1,8 +1,8 @@
 {
-  "name": "virtual-thing",
-  "version": "0.4.1",
-  "description": "Creates and deploys a virtual thing based on its TD",
-  "author": "Hassib Belhaj <https://github.com/hasbel>",
+  "name": "shadow-thing",
+  "version": "1.0.0",
+  "description": "Creates and deploys a Thing based on its TD, like a proxy or alone",
+  "author": "Professorship of Embedded Systems and Internet of Things",
   "license": "MIT",
   "main": "dist/virtual-thing",
   "types": "dist/virtual-thing.d.ts",
@@ -16,7 +16,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/tum-ei-esi/virtual-thing"
+    "url": "https://github.com/tum-ei-esi/shadow-thing"
   },
   "keywords": [
     "wot",
