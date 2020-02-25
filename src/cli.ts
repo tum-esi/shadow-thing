@@ -34,6 +34,7 @@ const DEFAULT_LOG_LEVEL = 2;
 const DEFAULT_STATIC_ADDRESS = "127.0.0.1";
 const DEFAULT_EVENT_INTERVAL = 15;
 const DEFAULT_TWIN_CACHING = 10;
+const DEFAULT_SECURITY = "nosec";
 
 const DEFAULT_HTTP_PORT = 8080;
 const DEFAULT_COAP_PORT = 5683;
@@ -48,13 +49,11 @@ const EXAMPLE_TD_PATH = join(__dirname, "..", "examples", "td", "coffee_machine_
 
 interface CoapConfig{
     port?: number;
-
     address?: string;
 }
 
 interface MqttConfig{
     local?: MqttLocalConfig;
-
     online?: MqttOnlineConfig;
 }
 
@@ -107,10 +106,10 @@ interface ConfigFile{
     things: ThingConfigList;
 }
 
-const parseArgs = (modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>) => {
+const parseArgs = (modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>, digitalTwinFlag:boolean) => {
     let argv = process.argv.slice(2);
     let configPresentFlag = false;
-    let digitalTwinFlag = false;
+    // let digitalTwinFlag = false;
         
     argv.forEach( (arg: string) => {
         if (configPresentFlag) {
@@ -164,7 +163,7 @@ const confirmConfiguration = async (confPath: string, tdPaths: Array<string>, tw
                     if(response === "yes"){
                         resolve(defConf);
                     }else{
-                        Promise.all(readTdFiles(tdPaths.concat(twinPaths))).then( (args) => resolve(configurationQuery(args.map( (arg) => JSON.parse(arg) ))) );
+                        Promise.all(readTdFiles(tdPaths.concat(twinPaths))).then( (args) => resolve(configurationQuery(args.map( (arg) => JSON.parse(arg) ), digitalTwinFlag)) );
                     }
                 });
             });
@@ -242,7 +241,10 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
         // Configuration for detected protocols
         if(protocols.has("http")){
             let httpConfig: HttpConfig = {
-                port: DEFAULT_HTTP_PORT
+                port: DEFAULT_HTTP_PORT,
+                security: {
+                    scheme: DEFAULT_SECURITY
+                }
             }
             config.servient.http = httpConfig;
         }
@@ -440,7 +442,12 @@ configuration file syntax:
  "servient": {
      "staticAddress": STATIC,
      "http": {
-         "port": PORT
+         "port": PORT,
+         "serverKey":KEYLOCATION,
+         "serverCert":CERTIFICATELOCATION,
+         "security":{
+            "scheme":"basic"
+         }
      },
      "coap": {
          "port": PORT
@@ -458,13 +465,17 @@ configuration file syntax:
          "twinPropertyCaching": {
              PROPERTY_ID1: INTERVAL,
              PROPERTY_ID2: INTERVAL,
+         },
+         "credentials": {
+            "username": USERNAME,
+            "password": PASSWORD
          }
      }
  }
 }
 virtual-thing.conf.json fields:
   ---------------------------------------------------------------------------
-  All entries are optional
+  All entries are optional except for security related ones after INTERVAL
   ---------------------------------------------------------------------------
   STATIC     : string with hostname or IP literal for static address config
   PORT      : integer defining the HTTP/COAP listening port
@@ -472,7 +483,11 @@ virtual-thing.conf.json fields:
                     ( error: 0, warn: 1, info: 2, log: 3, debug: 4 )
   THING_IDx  : string with the "id" of the thing be configured. must match TD
   EVENT_IDx  : string with the name of an event to be configured
-  INTERVAL   : integer to be interpred as a number of seconds.`);
+  INTERVAL   : integer to be interpred as a number of seconds.
+  KEYLOCATION: location of the key for HTTPS 
+  CERTIFICATELOCATION: location of the certificate for HTTPS
+  USERNAME   : username for basic auth
+  PASSWORD   : password for basic auth`);
 }
 
 // Variables to contain parsed TD and config paths
@@ -481,10 +496,11 @@ var configPath: string;
 var modelPaths: Array<string> = [];
 var twinTdPaths: Array<string> = [];
 var tdPaths: Array<string> = [];
+var digitalTwinFlag: boolean;
 
 // Main logic of script
 if(process.argv.length > 2){
-    parseArgs(modelPaths, twinTdPaths, tdPaths);
+    parseArgs(modelPaths, twinTdPaths, tdPaths, digitalTwinFlag);
 }
 
 confirmConfiguration(configPath, tdPaths, twinTdPaths)
