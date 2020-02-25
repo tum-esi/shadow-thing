@@ -193,7 +193,7 @@ interface usernameQueryResponse {
     username: string
 }
 
-let usernameLocationQuery = {
+let usernameQuery = {
     type: 'string',
     name: 'username',
     message: 'Enter the username for Basic Auth'
@@ -203,7 +203,7 @@ interface passwordQueryResponse {
     password: string
 }
 
-let passwordLocationQuery = {
+let passwordQuery = {
     type: 'password',
     name: 'password',
     message: 'Enter the password for Basic Auth'
@@ -305,7 +305,7 @@ const thingQuery = async (thingList: Array<WoT.ThingInstance>, isDigitalTwin:boo
             let container = {};
             let eventInter = {};
             let twinProp = {};
-            let credentials = {
+            let credentialsObj = {
                 username:"",
                 password:""
             }
@@ -330,39 +330,20 @@ const thingQuery = async (thingList: Array<WoT.ThingInstance>, isDigitalTwin:boo
                 });
             }
 
+            if(!isNoSec){ //ask for username password if security is present
+                await inquirer.prompt(usernameQuery).then(async (username: usernameQueryResponse) => {
+                    Object.assign(credentialsObj, { username: username.username});
+                });
+                
+                await inquirer.prompt(passwordQuery).then(async (password: passwordQueryResponse) => {
+                    Object.assign(credentialsObj, { password: password.password });
+                });
+                Object.assign(container, { credentials: credentialsObj });
+            }
+
             Object.assign(things, { [thingList[i].id]: container });
         }
 
-        // return inquirer.prompt(twinPropertyCachingQuery).then( async ( cachingTime: twinPropertyCachingResponse ) => {
-        //     for(let i = 0; i < thingList.length; i++){
-        //         let container = {};
-        //         let eventInter = {};
-        //         let twinProp = {};
-        //         let credentials = {
-        //             username:"",
-        //             password:""
-        //         }
-
-        //         instanceNumberQuery.message = `Enter desired number of instances for thing with id ${thingList[i].id} :`
-
-        //         await inquirer.prompt(instanceNumberQuery).then( (instanceNumber: instanceNumberResponse) => {
-        //             Object.assign(container, { nInstance: instanceNumber.nInstance });
-        //         });
-
-        //         for(let event in thingList[i].events){
-        //             Object.assign(eventInter, { [event]: eventTime.eventIntervals });
-        //         }
-        //         Object.assign(container, { eventIntervals: eventInter });
-
-        //         for(let prop in thingList[i].properties){
-        //             Object.assign(twinProp, { [prop]: cachingTime.twinPropertyCaching });
-        //         }
-        //         Object.assign(container, { twinPropertyCaching: twinProp });
-
-        //         Object.assign(things, { [thingList[i].id]: container });
-        //     }
-        // });
-        
     }).then( () => {
         return things;
     });        

@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-/********************************************************************************
- * Copyright (c) 2019 Hassib Belhaj - www.esi.ei.tum.de
- * MIT Licence - see LICENSE
- ********************************************************************************/
-
 import { readFile , readFileSync } from "fs";
 import { join } from "path";
 
@@ -92,6 +87,8 @@ interface VirtualThingConfig{
     eventIntervals: IntervalsConfig;
 
     twinPropertyCaching: IntervalsConfig;
+
+    credentials: Object;
 }
 
 interface ThingConfigList{
@@ -106,10 +103,10 @@ interface ConfigFile{
     things: ThingConfigList;
 }
 
-const parseArgs = (modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>, digitalTwinFlag:boolean) => {
+const parseArgs = (modPaths: Array<string>, twinPaths: Array<string>, tDescPaths: Array<string>) => {
     let argv = process.argv.slice(2);
     let configPresentFlag = false;
-    // let digitalTwinFlag = false;
+    digitalTwinFlag = false;
         
     argv.forEach( (arg: string) => {
         if (configPresentFlag) {
@@ -140,7 +137,7 @@ const parseArgs = (modPaths: Array<string>, twinPaths: Array<string>, tDescPaths
     });
 }
 
-const confirmConfiguration = async (confPath: string, tdPaths: Array<string>, twinPaths: Array<string>) => {
+const confirmConfiguration = async (confPath: string, tdPaths: Array<string>, twinPaths: Array<string>, digitalTwinFlag:boolean) => {
     return new Promise( (resolve, reject) => {
         if(confPath){
             readConfigFile(confPath).then( (conf: string) => {
@@ -233,7 +230,8 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
             config.things[tdJson.id] = {
                 nInstance: 1,
                 eventIntervals,
-                twinPropertyCaching
+                twinPropertyCaching,
+                credentials:{}
             }
 
         });
@@ -344,6 +342,25 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
         servient.addServer(mqttServer);
         servient.addClientFactory(new MqttClientFactory());
     }
+    
+    //iterate through the things to add credentials
+    let thingConfig = config.things
+    Object.keys(thingConfig).forEach(thingId => { 
+        if (thingConfig[thingId].credentials){
+            let nbInstances = thingConfig[thingId].nInstance;
+            //if there are multiple instances, there will be multiple ids
+            // they are always structured like OLDID:n-INSTANCENUMBER
+            // INSTANCENUMBER starts at 1
+            if (nbInstances == 1) {
+                servient.addCredentials({ [thingId]:thingConfig[thingId].credentials})
+            } else {
+                for (let index = 1; index <= nbInstances; index++) {
+                    let nThingId = thingId+":n-"+index
+                    servient.addCredentials({ [nThingId]: thingConfig[thingId].credentials })
+                }
+            }
+        }
+    });
 
     // Start Servient, virtual things and digital twins
     servient.start()
@@ -496,14 +513,14 @@ var configPath: string;
 var modelPaths: Array<string> = [];
 var twinTdPaths: Array<string> = [];
 var tdPaths: Array<string> = [];
-var digitalTwinFlag: boolean;
+var digitalTwinFlag: boolean; //global variable
 
 // Main logic of script
 if(process.argv.length > 2){
-    parseArgs(modelPaths, twinTdPaths, tdPaths, digitalTwinFlag);
+    parseArgs(modelPaths, twinTdPaths, tdPaths);
 }
 
-confirmConfiguration(configPath, tdPaths, twinTdPaths)
+confirmConfiguration(configPath, tdPaths, twinTdPaths, digitalTwinFlag)
 .then((config: ConfigFile) => {
     if(config.servient.mqtt && config.servient.mqtt.local){
         startLocalMqttServer(config.servient.mqtt.local.port);
