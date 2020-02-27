@@ -1,0 +1,35 @@
+{
+    "modes": ["single", "multi"],
+    "protocols": ["http", "coap"],
+    "memory_limit": 10240,
+    "ports": {
+        "start": 1,
+        "end": 6
+    },
+    "clients": {
+        "start": 1,
+        "end": 3
+    },
+    "prop": {
+        "start": 2,
+        "end": 20,
+        "step": 2
+    },
+    "action": {
+        "start": 2,
+        "end": 20,
+        "step": 2
+    },
+    "event": {
+        "start": 2, 
+        "end": 20, 
+        "step": 2
+    },
+    "nData": 25,
+    "tdPath": "./examples/td/coffee_machine_td.json",
+    "thingInstance": {
+        "start": 10000, 
+        "end": 30000, 
+        "step": 5000
+    }
+}

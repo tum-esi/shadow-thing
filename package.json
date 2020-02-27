@@ -1,22 +1,23 @@
 {
-  "name": "virtual-thing",
-  "version": "0.4.5",
-  "description": "Creates and deploys a virtual thing based on its TD",
-  "author": "Assistant Professorship of Embedded Systems and Internet of Things  <https://github.com/tum-ei-esi/>",
+  "name": "shadow-thing",
+  "version": "1.0.0",
+  "description": "Creates and deploys a Thing based on its TD, like a proxy or alone",
+  "author": "Professorship of Embedded Systems and Internet of Things",
   "license": "MIT",
   "main": "dist/virtual-thing",
   "types": "dist/virtual-thing.d.ts",
   "bin": {
-    "virtual-thing": "dist/cli.js"
+    "shadow-thing": "dist/cli.js"
   },
   "files": [
     "dist/",
     "examples/",
+    "virtual-thing.conf.json",
     "validation-schemas/"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/tum-esi/virtual-thing"
+    "url": "https://github.com/tum-esi/shadow-thing"
   },
   "keywords": [
     "wot",
@@ -39,15 +40,21 @@
     "@node-wot/core": "0.6.2",
     "aedes": "0.39.0",
     "ajv": "6.5.5",
+    "csv-writer": "1.5.0",
+    "csvjson": "^5.1.0",
+    "grubbs": "^1.3.2",
     "inquirer": "6.4.1",
     "is-utf8": "0.2.1",
     "json-schema-faker": "0.4.7",
     "jsonld": "1.7.0",
+    "mathjs": "^6.2.5",
     "winston": "3.1.0",
     "wot-typescript-definitions": "0.6.2"
   },
   "scripts": {
-    "preinstall": "rm -rf thingweb.node-wot && rm -rf node_modules && rm -rf package-lock.json",
+    "preinstall": "npm run pre:default",
+    "pre:windows": "rmdir /s /q thingweb.node-wot & rmdir /s /q node_modules & del /s /q /f package-lock.json",
+    "pre:default": "rm -rf thingweb.node-wot && rm -rf node_modules && rm -rf package-lock.json",
     "start": "node dist/cli.js",
     "build": "tsc"
   }

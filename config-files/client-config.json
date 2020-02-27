@@ -1,0 +1,15 @@
+{
+    "clients": [
+        {
+            "instances": 100,
+            "protocol": "http",
+            "thingURL": "192.168.0.122:8080/light_sensor",
+            "measures": 20,
+            "events_to_sub": [],
+            "actions_to_inv": {},
+            "prop_to_read": {
+                "intensity": 1
+            }
+        }
+    ]
+}

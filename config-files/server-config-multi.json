@@ -1,0 +1,19 @@
+{
+    "mode": "multi",
+    "staticAddress": "localhost",
+    "servients": [
+        {
+            "instances": 4,
+            "protocol": "http",
+            "things": {
+                "./examples/td/coffee_machine_td.json": {
+                    "instances": 1130,
+                    "eventIntervals": {
+                        "maintenance": 0,
+                        "error": 0 
+                    }
+                }
+            }
+        }
+    ]
+}

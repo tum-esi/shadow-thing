@@ -1,0 +1,30 @@
+{
+    "clients": [
+        {
+            "instances": 10,
+            "protocol": "http",
+            "thingURL": "localhost:8179/Virtual-Coffee-Machine_100_1",
+            "measures": 100,
+            "events_to_sub": [],
+            "actions_to_inv": {
+                "brew": 0.1
+            },
+            "prop_to_read": {
+                "waterStatus": 0.1
+            }
+        },
+        {
+            "instances": 10,
+            "protocol": "http",
+            "thingURL": "localhost:8080/Virtual-Coffee-Machine_1_1",
+            "measures": 100,
+            "events_to_sub": [],
+            "actions_to_inv": {
+                "brew": 0.1
+            },
+            "prop_to_read": {
+                "waterStatus": 0.1
+            }
+        }
+    ]
+}

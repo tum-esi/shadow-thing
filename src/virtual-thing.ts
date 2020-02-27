@@ -49,7 +49,7 @@ export class VirtualThing {
     private validateThingDescription(){ //TODO better error messages
         // TD Schema Validation Test 
         if(!ajv.validate('td', JSON.stringify(this.thingDescription))){
-            console.error("wrong");
+            console.error("Invalid TD specified.");
             process.exit();
         }
     }
@@ -141,7 +141,7 @@ export class VirtualThing {
             let interval = (this.config && this.config.eventIntervals && this.config.eventIntervals[event]) ?
                 this.config.eventIntervals[event]*1000 : Math.floor(Math.random() * 11) * 5000 + 5000;
             // if interval is set to 0 in config file, don't generate events.
-            if (this.config && this.config.eventIntervals && this.config.eventIntervals[event] !== 0) {
+            if (this.config.eventIntervals[event] !== 0) {
                 setInterval( 
                     async () => {
                         console.info("E: Emitting event: " + event);
@@ -158,6 +158,9 @@ export class VirtualThing {
 
 export type VirtualThingConfig = {
     eventIntervals?: {
+        [key: string]: number
+    },
+    twinPropertyCaching?: {
         [key: string]: number
     }
 }

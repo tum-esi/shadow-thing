@@ -15,3 +15,7 @@ package-lock.json
 
 # MacOS
 .DS_Store
+# ignore directory for test results
+test_results
+tests
+testConfigs
