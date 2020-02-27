@@ -1,10 +1,20 @@
 {
-    "@context": "http://www.w3.org/ns/td",
+    "@context": [
+        "https://www.w3.org/2019/wot/td/v1",
+        {
+            "@language": "en"
+        }
+    ],
     "@type": "Thing",
     "id": "de:tum:ei:esi:fp:coffee",
     "title": "Virtual-Coffee-Machine",
     "description": "A virtual coffee machine to learn the WoT TD standard",
-    "security": [{"scheme": "nosec"}],
+    "security": "nosec_sc",
+    "securityDefinitions": {
+        "nosec_sc": {
+            "scheme": "nosec"
+        }
+    },
     "properties": {
         "state": {
             "type": "string",

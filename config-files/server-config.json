@@ -17,7 +17,7 @@
         },
         {
             "instances": 1,
-            "protocol": "http",
+            "protocol": "coap",
             "things": {
                 "./examples/td/coffee_machine_td.json": {
                     "instances": 500,
