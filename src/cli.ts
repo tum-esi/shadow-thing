@@ -29,7 +29,6 @@ const DEFAULT_LOG_LEVEL = 2;
 const DEFAULT_STATIC_ADDRESS = "127.0.0.1";
 const DEFAULT_EVENT_INTERVAL = 15;
 const DEFAULT_TWIN_CACHING = 10;
-const DEFAULT_SECURITY = "nosec";
 
 const DEFAULT_HTTP_PORT = 8080;
 const DEFAULT_COAP_PORT = 5683;
@@ -88,7 +87,7 @@ interface VirtualThingConfig{
 
     twinPropertyCaching: IntervalsConfig;
 
-    credentials: Object;
+    credentials?: Object;
 }
 
 interface ThingConfigList{
@@ -230,8 +229,7 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
             config.things[tdJson.id] = {
                 nInstance: 1,
                 eventIntervals,
-                twinPropertyCaching,
-                credentials:{}
+                twinPropertyCaching
             }
 
         });
@@ -239,10 +237,7 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
         // Configuration for detected protocols
         if(protocols.has("http")){
             let httpConfig: HttpConfig = {
-                port: DEFAULT_HTTP_PORT,
-                security: {
-                    scheme: DEFAULT_SECURITY
-                }
+                port: DEFAULT_HTTP_PORT
             }
             config.servient.http = httpConfig;
         }
