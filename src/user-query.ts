@@ -294,9 +294,9 @@ const protocolsQuery = async () => {
     }).then( () => protocolConfig);
 }
 
-const thingQuery = async (thingList: Array<WoT.ThingInstance>, isDigitalTwin:boolean, isNoSec:boolean) => {
+const thingQuery = async (thingList: Array<WoT.ThingDescription>, isDigitalTwin:boolean, isNoSec:boolean) => {
     let things = {};
-    thingList.forEach( (thing: WoT.ThingInstance) => {
+    thingList.forEach( (thing: WoT.ThingDescription) => {
         Object.assign(things, { [thing.id]: {} });
     });
     return inquirer.prompt(eventIntervalQuery).then( async( eventTime: eventIntervalResponse ) => {
@@ -349,7 +349,7 @@ const thingQuery = async (thingList: Array<WoT.ThingInstance>, isDigitalTwin:boo
     });        
 }
 
-export const configurationQuery = async (thingList: Array<WoT.ThingInstance>, isDigitalTwin: boolean) => {
+export const configurationQuery = async (thingList: Array<WoT.ThingDescription>, isDigitalTwin: boolean) => {
     var noSecFlag = true;
     let config = {
         servient: {},

@@ -4,7 +4,7 @@ import { join } from "path";
 import * as winston from 'winston';
 
 import * as WoT from "wot-typescript-definitions";
-import { Servient } from "@node-wot/core";
+import { Servient, Helpers } from "@node-wot/core";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { MqttClientFactory } from "@node-wot/binding-mqtt";
@@ -14,6 +14,7 @@ const jsf = require("json-schema-faker");
 const DEFAULT_CONFIG_PATH = "./config-files/client-config.json";
 
 let config: Config;
+let WoTHelpers:Helpers
 
 interface TestConfig{
     [key:string]: number;
@@ -83,12 +84,12 @@ const readFilePromise = (path: string) => {
     });
 }
 
-const fetchAndConsume = (factory: WoT.WoTFactory, url: string) => {
+const fetchAndConsume = (factory: WoT.WoT, url: string) => {
     return new Promise(async (resolve,reject) => {
         let resolved = false;
         while(!resolved){
             log("Fetching...");
-            await factory.fetch(url).then((fetchedTD: WoT.ThingDescription) => {
+            await WoTHelpers.fetch(url).then((fetchedTD: WoT.ThingDescription) => {
                 resolve(factory.consume(fetchedTD));
                 resolved = true;
             }).catch(async (err: Error) => {
@@ -105,7 +106,7 @@ const testProp = (thing: WoT.ConsumedThing, prop: string, delay: number, nbMeasu
         log(`Started test for read of <${prop}> every ${delay} seconds.`);
         let interval = setInterval( async () => {
             let startTime = new Date();
-            await thing.properties[prop].read();
+            await thing.readProperty(prop);
             let endTime = new Date();
             data.push({
                 interval: endTime.getTime() - startTime.getTime(),
@@ -129,10 +130,10 @@ const testAction = (thing: WoT.ConsumedThing, action: string, delay: number, nbM
         log(`Started test for invoke of <${action}> every ${delay} seconds.`);
         let interval = setInterval( async () => {
             let startTime = new Date();
-            if(thing.actions[action].input){
-                await thing.actions[action].invoke(jsf(thing.actions[action].input));
+            if(thing.getThingDescription().actions[action].input){
+                await thing.invokeAction(action,jsf(thing.getThingDescription().actions[action].input));
             }else{
-                await thing.actions[action].invoke();
+                await thing.invokeAction(action);
             }
             let endTime = new Date();
             data.push({
@@ -156,8 +157,8 @@ const testEvent = (thing: WoT.ConsumedThing, event: string, nbMeasures: number) 
         let startTime = new Date();
         let data: Array<object> = [];
         log(`Started test for subscription of <${event}> for ${nbMeasures} emissions.`);
-        let subscription = thing.events[event].subscribe(
-            () => {
+        thing.subscribeEvent(event,
+            x => {
                 let endTime = new Date();
                 data.push({
                     interval: endTime.getTime() - startTime.getTime(),
@@ -169,11 +170,10 @@ const testEvent = (thing: WoT.ConsumedThing, event: string, nbMeasures: number) 
                 startTime = new Date();
 
                 if(data.length >= nbMeasures){
-                    subscription.unsubscribe();
+                    thing.unsubscribeEvent(event);
                     resolve(data);
                 }
-            },
-            (err: Error) => console.error(err)
+            }
         );
     });
 }
@@ -190,7 +190,8 @@ const startTest = (clientConfig: ClientConfig) => {
     }
 
     return servient.start()
-    .then( (thingFactory: WoT.WoTFactory) => {
+    .then( (thingFactory: WoT.WoT) => {
+        WoTHelpers = new Helpers(servient)
         return fetchAndConsume(thingFactory, `${clientConfig.protocol}://${clientConfig.thingURL}`);
     }).then( (thing: WoT.ConsumedThing) => {
         let propPromises = [];

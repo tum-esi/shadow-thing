@@ -6,39 +6,44 @@ export class DigitalTwin {
     public virtualThing: VirtualThing;
     public thing: WoT.ExposedThing;
     public readonly config: VirtualThingConfig;
-    public readonly thingDescription: WoT.ThingInstance;
+    public readonly thingDescription: WoT.ThingDescription;
     private customHandlers: { [key: string]: DTCustomHandler };
     private lastReadValues : { [key: string]: {value: any, timestamp: Date} };
 
-    public constructor(thingDescription: WoT.ThingInstance, factory: WoT.WoTFactory, config?: VirtualThingConfig) {
+    public constructor(thingDescription: WoT.ThingDescription, factory: WoT.WoT, config?: VirtualThingConfig) {
         // Convert TD to an object.
         this.thingDescription = thingDescription;
 
         // Consume thing
-        this.realThing = factory.consume(JSON.stringify(this.thingDescription));
+        factory.consume(this.thingDescription).then(curThing=>{
+            this.realThing = curThing;
+            // Remove event generation intervals from config
+            //this.config = config //check if the variable stays
+            this.removeVirtualEventIntervals()
 
-        // Remove event generation intervals from config
-        this.config = config
-        this.removeVirtualEventIntervals()
+            // Create a virtual thing (title/id have to be different for the servient to work)
+            let virtualTD = JSON.parse(JSON.stringify(thingDescription));
+            virtualTD.title = "Virtual-Thing" + Math.floor(Math.random() * 1000);
+            virtualTD.id = "de:tum:ei:esi:fp:virt" + Math.floor(Math.random() * 1000);
+            this.virtualThing = new VirtualThing(virtualTD, factory, config);
 
-        // Create a virtual thing (title/id have to be different for the servient to work)
-        let virtualTD = JSON.parse(JSON.stringify(thingDescription));
-        virtualTD.title = "Virtual-Thing" + Math.floor(Math.random() * 1000);
-        virtualTD.id = "de:tum:ei:esi:fp:virt" + Math.floor(Math.random() * 1000);
-        this.virtualThing = new VirtualThing(virtualTD, factory, config);
+            // Initialise custom handlers and last read values objects
+            this.customHandlers = {};
+            this.lastReadValues = {};
 
-        // Initialise custom handlers and last read values objects
-        this.customHandlers = {};
-        this.lastReadValues = {};
+            // Generate thing and add handlers to it
+            factory.produce(this.thingDescription).then(thing=>{
+                this.thing = thing;
+                this.addPropertyHandlers();
+                this.addActionHandlers();
+                this.addEventHandlers();
+    
+                // change properties in TD to reflect annotation
+                this.annotateTD();
+            });
+        });
 
-        // Generate thing and add handlers to it
-        this.thing = factory.produce(JSON.stringify(this.thingDescription));
-        this.addPropertyHandlers();
-        this.addActionHandlers();
-        this.addEventHandlers();
-
-        // change properties in TD to reflect annotation
-        this.annotateTD();
+        
     }
 
     public expose() {
@@ -50,14 +55,14 @@ export class DigitalTwin {
     }
 
     private annotateTD() {
-        for (let property in this.thing.properties) {
-            this.annotateAccuracy(this.thing.properties[property]);
+        for (let property in this.thing.getThingDescription().properties) {
+            this.annotateAccuracy(this.thing.getThingDescription().properties[property]);
             this.annotateCaching(property);
         }
     }
 
     // What happens to title / discripton / unit / custom elements ...
-    private annotateAccuracy(property: WoT.ThingProperty) {
+    private annotateAccuracy(property: any) {
         // Schema describing the added accuracy attributes
         let annotatedProperties = {
             origin: {
@@ -109,7 +114,7 @@ export class DigitalTwin {
 
     private annotateCaching(property: string) {
         if (this.config && this.config.twinPropertyCaching && this.config.twinPropertyCaching[property]) {
-            this.thing.properties[property].maxAge = this.config.twinPropertyCaching[property];
+            this.thing.getThingDescription().properties[property].maxAge = this.config.twinPropertyCaching[property];
         }
     }
 
@@ -147,7 +152,7 @@ export class DigitalTwin {
                             return;
                         }
                     }
-                    this.realThing.properties[property].read()
+                    this.realThing.readProperty(property)
                     .then((realResponse) => {
                         // Save received value for future use.
                         this.lastReadValues[property] = { 
@@ -187,7 +192,7 @@ export class DigitalTwin {
                                 reject(customError) // TODO: Should this return the custom or the real error ?
                             })
                         } else {
-                            this.virtualThing.thing.properties[property].read()
+                            this.virtualThing.thing.readProperty(property)
                             .then((fakeResponse) => {
                                 let annotatedResponse = { 
                                     data: fakeResponse,
@@ -212,7 +217,7 @@ export class DigitalTwin {
             property,
             (receivedValue) => { 
                 return new Promise((resolve, reject) => {
-                    this.realThing.properties[property].write(receivedValue)
+                    this.realThing.getThingDescription().properties[property].write(receivedValue)
                     .then((realResponse) => { 
                         // TODO: should we annotate this ? if not just return original promise.
                         resolve(realResponse); 
@@ -226,31 +231,35 @@ export class DigitalTwin {
     }
 
     private subscribeToEvent(event: string) {
-        let subscription = this.realThing.events[event].subscribe(
+        this.realThing.subscribeEvent(event,
+            
             (realData) => { 
-                this.thing.events[event].emit(realData); 
+                this.thing.getThingDescription().events[event].emit(realData); 
                 console.info("Forwarding emitted event: " + event);
-            },
-            (realError) => {
-                console.debug("Subscription to event " + event + " failed with error: " + realError);
-                subscription.unsubscribe(); //FIXME: temporary fix until node wot is fixed ( if status code 404 received, stop polling )
-            },
-            () => {
-                console.debug("Will try again in 10 seconds..."); // Retry only if request meets error...
-                setTimeout(() => { this.subscribeToEvent(event); }, 10000); 
-            }
+            }//,
+            // (realError) => {
+            //     console.debug("Subscription to event " + event + " failed with error: " + realError);
+            //     this.realThing.unsubscribeEvent(event); //FIXME: temporary fix until node wot is fixed ( if status code 404 received, stop polling )
+            // },
+            // () => {
+            //     console.debug("Will try again in 10 seconds..."); // Retry only if request meets error...
+            //     setTimeout(
+            //         () => { 
+            //         this.subscribeToEvent(event); 
+            //     }, 10000); 
+            // }
         );
     }
 
     // Add read and write handlers for properties.
     private addPropertyHandlers() {
-        for (let property in this.thing.properties) {
+        for (let property in this.thing.getThingDescription().properties) {
             // add handlers to readable properties.
-            if (this.thing.properties[property].writeOnly !== true) { 
+            if (this.thing.getThingDescription().properties[property].writeOnly !== true) { 
                 this.addPropertyReadHandler(property);
             }
             // add handlers to writable properties.
-            if (this.thing.properties[property].readOnly !== true) { 
+            if (this.thing.getThingDescription().properties[property].readOnly !== true) { 
                 this.addPropertyWriteHandler(property);
             }
             // TODO: subscribe to observable.
@@ -258,11 +267,11 @@ export class DigitalTwin {
     }
 
     private addActionHandlers() {
-        for (let action in this.thing.actions) {
+        for (let action in this.thing.getThingDescription().actions) {
             this.thing.setActionHandler(
                 action, 
                 (receivedInput) => {
-                    return this.realThing.actions[action].invoke(receivedInput)
+                    return this.realThing.invokeAction(action, receivedInput)
                 }
             )
         }

@@ -119,7 +119,7 @@ const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) 
             break;
     }
 
-    servient.start().then( (factory: WoT.WoTFactory) => {
+    servient.start().then( (factory: WoT.WoT) => {
         log("servient started " + servNum + "at port diff" + portPos)
         for(let thingPath in servConfig.things){
             initThings(thingPath, factory, servNum, servConfig.things[thingPath]);
@@ -133,9 +133,9 @@ const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) 
  *  @param servNum - A number indicating the unique identifier of a servient
  *  @param thingConf - A configuration object for creating the thing
  */
-const initThings = async (tdPath: string, thingFactory: WoT.WoTFactory, servNum: number, thingConf: ThingConfig) => {
+const initThings = async (tdPath: string, thingFactory: WoT.WoT, servNum: number, thingConf: ThingConfig) => {
     await readFilePromise(tdPath).then( (td:WoT.ThingDescription) => {
-        let jsonTd: WoT.ThingInstance = JSON.parse(td);
+        let jsonTd = td;
         for(let i = 1; i<=thingConf.instances; i++){
             new VirtualThing(
                 {
