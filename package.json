@@ -52,9 +52,6 @@
     "wot-typescript-definitions": "0.6.2"
   },
   "scripts": {
-    "preinstall": "npm run pre:default",
-    "pre:windows": "rmdir /s /q thingweb.node-wot & rmdir /s /q node_modules & del /s /q /f package-lock.json",
-    "pre:default": "rm -rf thingweb.node-wot && rm -rf node_modules",
     "start": "node dist/cli.js",
     "build": "tsc"
   }
