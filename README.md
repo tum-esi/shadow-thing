@@ -1,6 +1,7 @@
 # Shadow Thing
 
 ![Node.js CI](https://github.com/tum-esi/shadow-thing/workflows/Node.js%20CI/badge.svg?branch=master)
+![Workflow for all OS](https://github.com/tum-esi/shadow-thing/workflows/Workflow%20for%20all%20OS/badge.svg?branch=master)
 
 Creates and deploys a Thing based on its TD
 
