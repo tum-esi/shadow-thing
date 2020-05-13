@@ -383,3 +383,23 @@ docker-compose up
 1. [Thing Description Specification](https://w3c.github.io/wot-thing-description)
 2. [Scripting API Specification](https://w3c.github.io/wot-scripting-api/)
 3. [node-wot implementation of the Scripting API](https://github.com/eclipse/thingweb.node-wot)
+
+## Continuous Integration Workflow with Github Actions
+
+Every time a pull-request to master is done the CI workflow (currently including node.js installation and build) is triggered. This workflow only tests on a `linux` based Github hosted runner. 
+
+If a test on all available operating systems (`maxOS`, `windows`, `linux`) is needed, another CI workflow for all OSs can be triggered manually.
+
+To be able to do this, first a [personal access token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) needs to be generated. Then, this token needs to be added as _Secret_. 
+In the github repository go to `settings > secrets > 'add new secret'`. Give the secret a name (e.g. [your-name]_ACCESS_TOKEN ) and add `[your-username]:[your-private-access-token]` as value.
+
+_Note: You can only do this if you have the required access rights._
+
+Then you can trigger the 'Workflow for all OS' with the following command: 
+
+```
+curl -X POST https://api.github.com/repos/tum-esi/shadow-thing/dispatches \ 
+-H 'Accept: application/vnd.github.everest-preview+json' \
+-H 'Authorization: token <your-token-here>' \
+--data '{"event_type":  "test-all-os"}'
+```
