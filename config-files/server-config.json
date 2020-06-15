@@ -27,6 +27,20 @@
                     }
                 }
             }
+        },
+        {
+            "instances": 1,
+            "protocol": "mqtt",
+            "brokerURI":"test.mosquitto.org",
+            "things": {
+                "./examples/td/coffee_machine_td.json": {
+                    "instances": 1,
+                    "eventIntervals": {
+                        "maintenance": 5,
+                        "error": 20
+                    }
+                }
+            }
         }
 
     ]

@@ -9,6 +9,7 @@ import { HttpServer } from "@node-wot/binding-http";
 import { CoapServer } from "@node-wot/binding-coap";
 
 import { VirtualThing } from "./virtual-thing";
+import { MqttBrokerServer } from '@node-wot/binding-mqtt';
 
 const NUM_CPUS = require('os').cpus().length;
 const DEFAULT_CONFIG_PATH = "./config-files/server-config.json";
@@ -32,6 +33,7 @@ interface ThingsConfig {
 interface ServerConfig {
     instances: number;
     protocol: string;
+    brokerURI ?: string;
     things: ThingsConfig;
 }
 
@@ -111,7 +113,7 @@ const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) 
             servient.addServer( new CoapServer(5683 + portPos) );
             break;
         case 'mqtt':
-            //TODO?
+            servient.addServer( new MqttBrokerServer(servConfig.brokerURI) );
             break;
         default:
             console.error("Unknown protocol specified.");
@@ -155,7 +157,7 @@ const initThings = async (tdPath: string, thingFactory: WoT.WoTFactory, servNum:
             if (curThingNb > maxThing){
                 maxThing = curThingNb
             }
-            log("max is"+String(maxThing))
+            log("max is "+String(maxThing))
         }
     });
 }
