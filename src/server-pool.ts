@@ -33,8 +33,15 @@ interface ThingsConfig {
 interface ServerConfig {
     instances: number;
     protocol: string;
-    brokerURI ?: string;
+    mqttConfig ?: MqttConfig;
     things: ThingsConfig;
+}
+
+interface MqttConfig{
+    uri: string;
+    username?: string;
+    password?: string;
+    clientId?: string;
 }
 
 interface Config {
@@ -113,7 +120,7 @@ const initServer = (servConfig: ServerConfig, servNum: number, portPos: number) 
             servient.addServer( new CoapServer(5683 + portPos) );
             break;
         case 'mqtt':
-            servient.addServer( new MqttBrokerServer(servConfig.brokerURI) );
+            servient.addServer( new MqttBrokerServer(servConfig.mqttConfig.uri, servConfig.mqttConfig.username, servConfig.mqttConfig.password, servConfig.mqttConfig.clientId) );
             break;
         default:
             console.error("Unknown protocol specified.");
