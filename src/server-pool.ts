@@ -147,7 +147,7 @@ const initThings = async (tdPath: string, thingFactory: WoT.WoT, servNum: number
                 {
                     eventIntervals: thingConf.eventIntervals
                 }
-            ).expose()
+            ).produce().then(vt => vt.expose());
             var endTime = new Date();
             log(String(endTime.getTime() - startTime.getTime()));
             var curThingNb = servNum * i
