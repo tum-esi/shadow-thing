@@ -15,7 +15,9 @@ ajv.addSchema(schema, 'td');
 export class VirtualThing {
     public readonly config: any;
     public readonly thingDescription: WoT.ThingDescription;
-    public thing: WoT.ExposedThing;
+    public thing: WoT.ExposedThing = undefined;
+
+    private factory: WoT.WoT;
     
     /**
      * Create a virtual thing
@@ -24,21 +26,31 @@ export class VirtualThing {
      * @param config - An optional config object.
      */
     public constructor(td: WoT.ThingDescription, factory: WoT.WoT, config?: VirtualThingConfig) {
-
+        
         this.config = config;
+        this.factory = factory;
 
         // Convert TD to an object and validate it.
         this.thingDescription = td;
-        this.validateThingDescription();
+        this.validateThingDescription();        
+    }
 
-        // Generate an ExposedThing
-        factory.produce(this.thingDescription).then(thing =>{
-            this.thing = thing;
-
-            // Add property and action handlers
-            this.addPropertyHandlers();
-            this.addActionHandlers();
-            this.generateEvents();
+    /** Produce thing from TD */
+    public produce() : Promise<VirtualThing> {
+        return new Promise((resolve) => {
+            if(this.thing == undefined){
+                // Generate an ExposedThing
+                this.factory.produce(this.thingDescription).then(thing =>{
+                    this.thing = thing;
+                    // Add property and action handlers
+                    this.addPropertyHandlers();
+                    this.addActionHandlers();
+                    this.generateEvents();
+                    resolve(this);
+                });
+            }else{
+                resolve(this);
+            }            
         });
     }
 

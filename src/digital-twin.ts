@@ -26,6 +26,7 @@ export class DigitalTwin {
             virtualTD.title = "Virtual-Thing" + Math.floor(Math.random() * 1000);
             virtualTD.id = "de:tum:ei:esi:fp:virt" + Math.floor(Math.random() * 1000);
             this.virtualThing = new VirtualThing(virtualTD, factory, config);
+            this.virtualThing.produce();
 
             // Initialise custom handlers and last read values objects
             this.customHandlers = {};

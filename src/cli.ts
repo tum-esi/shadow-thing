@@ -363,19 +363,25 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingDescription[],
         things.forEach((td: WoT.ThingDescription) => {
             if (config.things.hasOwnProperty(td.id)) {
                 if(config.things[td.id].nInstance === 1){
-                    new VirtualThing(td, thingFactory, config.things[td.id]).expose();
+                    new VirtualThing(td, thingFactory, config.things[td.id])
+                        .produce().then(vt => vt.expose());
                     console.info(`Exposing ${td.title}`);
                 }else{
                     var i;
                     for(i = 0; i<config.things[td.id].nInstance; i++){
-                        new VirtualThing({...td, title: td.title + (i+1), id: td.id + ':n-' + (i+1)}, thingFactory, config.things[td.id]).expose();
+                        new VirtualThing({...td, title: td.title + (i+1), id: td.id + ':n-' + (i+1)},
+                                thingFactory,
+                                config.things[td.id])
+                            .produce().then(vt => vt.expose());
                         console.info(`Exposing instance ${i+1} of ${td.title}`);
                     }
                 }
             } else {
-                let vt = new VirtualThing(td, thingFactory);
-                console.info("Exposing " + td.title);
-                vt.expose();
+                new VirtualThing(td, thingFactory)
+                    .produce().then(vt => {
+                        vt.expose();
+                        console.info("Exposing " + td.title);
+                    });
             }
         });
         twins.forEach((td) => {
