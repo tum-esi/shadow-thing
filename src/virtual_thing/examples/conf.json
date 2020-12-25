@@ -1,0 +1,19 @@
+[
+
+    {
+        "vtd": "./src/virtual_thing/examples/temperature-complex-signal.json",
+        "num": 1
+    },
+    {
+        "vtd": "./src/virtual_thing/examples/temperature-play-file.json",
+        "num": 1
+    },
+    {
+        "vtd": "./src/virtual_thing/examples/temperature-simple-sine.json",
+        "num": 1
+    },
+    {
+        "vtd": "./src/virtual_thing/examples/temperature-fake.json",
+        "num": 1
+    }
+]

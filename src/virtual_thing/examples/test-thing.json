@@ -1,0 +1,40 @@
+{
+    "title": "TestThing",
+    "description": "This Thing demonstrates operation of a simplest Virtual Thing.",
+
+    "properties": {
+        "testProp": {
+            "title": "Simple read/write property"
+        }
+    },
+
+    "actions": {
+        "testAction": {
+            "description": "This action simply returns whatever you pass it.",
+            "input": {},
+            "output": {},
+            "processes": {
+                "proc": {
+                    "instructions": [
+                        {"move": {"from": {"pointer": "../i"}, "to": {"pointer": "../o"}}}
+                    ]
+                }
+            }
+        }
+    },
+
+    "events": {
+        "testEvent": {
+            "description": "This event fires every 5 seconds.",
+            "data": { "type": "string" },
+            "processes": {
+                "proc": {
+                    "triggers": [{"interval": "5000"}],
+                    "instructions": [
+                        {"emitEvent": {"pointer": "..", "data": {"compound": "Event emitted at ${dt/iso}"}}}
+                    ]
+                }
+            }
+        }        
+    }
+}

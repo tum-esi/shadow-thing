@@ -1,0 +1,26 @@
+{
+    "title": "TemperatureSimpleSine",
+    "description": "This thing simualates a temperature signal as a sine wave with f=0.1Hz, A=2, DC offset = 20, sampled on each property read.",
+
+    "properties": {
+        "temperature": {
+            "type": "number",
+            "minimum": 18,
+            "maximum": 22,
+            "readOnly": true,
+            "processes": {
+                "read": {
+                    "instructions": [
+                        {
+                            "move": {
+                                "from": {"math": "2 * sin(2*pi * (${dt/unix}%10000) / 10000) + 20"},
+                                "to": {"pointer": "../o"}
+                            }
+                        },
+                        {"log": "${behaviorPath}: ${../o}" }
+                    ]
+                }
+            }
+        }
+    }
+}

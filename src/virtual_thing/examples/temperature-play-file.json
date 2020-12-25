@@ -1,0 +1,75 @@
+{
+    "title": "TemperatureFromFile",
+    "description": "This thing simualates a temperature signal by reading pre-recorded values from ./src/virtual_thing/examples/samples.json a value per second, then wraps around.",
+
+    "properties": {
+        "temperature": {
+            "type": "number",
+            "readOnly": true
+        }
+    },
+
+    "dataMap": {
+        "samples": {
+            "type": "array",
+            "items": {"type": "number"}
+        }
+    },
+
+    "processes": {
+
+        "playSamples": {
+            "triggers": [{"runtimeEvent": "startup"}],
+            "dataMap": {        
+                "log": {"const": true},               
+                "sampleInterval": {"const": 1000},
+                "i": {"type": "number"}
+            },
+            "instructions": [
+                {
+                    "comment": "Read and parse the file, write to /dataMap/samples",
+                    "move": {
+                        "from": {
+                            "file": "./src/virtual_thing/examples/samples.json",
+                            "operation": "parse"
+                        },
+                        "to": {"pointer": "dmap/samples"}
+                    }
+                },
+                {
+                    "comment": "An infinite loop to wrap around each time samples are finished",
+                    "loop": {
+                        "instructions": [
+                            {
+                                "comment": "A loop through the samples in the array",
+                                "loop": {
+                                    "condition": "${./dmap/i} < ${length:dmap/samples}",
+                                    "iterator": "./dmap/i",
+                                    "interval": "${./dmap/sampleInterval}",
+                                    "instructions": [
+                                        {
+                                            "comment": ["Take the next sample using the iterator as index and ",
+                                                        "write it directly to the output buffer of the property."],
+                                            "move": {
+                                                "from": {"math": "${dmap/samples/${./dmap/i}}"},
+                                                "to": {"pointer": "p/temperature/o"}
+                                            }
+                                        },
+                                        {
+                                            "ifelse": {
+                                                "if": {
+                                                    "condition": "${./dmap/log}",
+                                                    "instructions": [{"log": "${processPath}: ${p/temperature/o}" }]
+                                                }
+                                            } 
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
