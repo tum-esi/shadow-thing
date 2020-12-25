@@ -1,5 +1,6 @@
 import * as WoT from "wot-typescript-definitions";
-import { VirtualThing, VirtualThingConfig} from './virtual-thing';
+import { VirtualThing} from './virtual_thing/src/index';
+import { VirtualThingConfig} from './virtual_thing/src/index';
 
 export class DigitalTwin {
     public realThing: WoT.ConsumedThing;
@@ -193,7 +194,7 @@ export class DigitalTwin {
                                 reject(customError) // TODO: Should this return the custom or the real error ?
                             })
                         } else {
-                            this.virtualThing.thing.readProperty(property)
+                            this.virtualThing.getModel().getExposedThing().readProperty(property)
                             .then((fakeResponse) => {
                                 let annotatedResponse = { 
                                     data: fakeResponse,

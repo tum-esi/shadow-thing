@@ -12,7 +12,7 @@ import { MqttBrokerServer, MqttClientFactory} from "@node-wot/binding-mqtt";
 import * as winston from "winston";
 
 import { defaultQuery, configurationQuery }  from "./user-query";
-import { VirtualThing } from "./virtual-thing";
+import { VirtualThing } from "./virtual_thing/src/index";
 import { DigitalTwin } from "./digital-twin";
 
 const Ajv = require('ajv');

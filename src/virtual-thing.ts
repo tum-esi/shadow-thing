@@ -1,3 +1,5 @@
+// TODO This file is obsolete
+
 import * as WoT from "wot-typescript-definitions";
 import * as path from "path"
 import * as fs from "fs";
