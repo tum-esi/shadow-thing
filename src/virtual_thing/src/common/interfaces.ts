@@ -22,7 +22,6 @@ export type IEnumWriteOp = WriteOp;
 export type IPointer = IParameterizedString;
 export type IInstructionConsole = IParameterizedString;
 export type IInstructionControl = ControlType;
-export type IProperty = IInteractionAffordance;
 export type ISensor = IBehavior;
 export type IActuator = IBehavior;
 export type IInstructionUnsubscribeEvent = IInstructionThingInteraction;
@@ -58,6 +57,11 @@ export interface IBehavior {
 
 export interface IInteractionAffordance extends IBehavior {
     uriVariables?: IDataMap;
+}
+
+
+export interface IProperty extends IInteractionAffordance, IDataSchema {
+
 }
 
 export interface IAction extends IInteractionAffordance {

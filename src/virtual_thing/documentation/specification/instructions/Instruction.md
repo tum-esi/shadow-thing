@@ -7,7 +7,7 @@ Type: `object`
 | Property | Description | Mandatory | Type | Default |
 |----------|-------------|:---------:|------|:-------:|
 |delay|Execute the `Instruction` after a delay.||[Delay]||
-|wait|Whether execution of the `Instruction` should be "awaited" by the next one.||`boolean`|true|
+|wait|Whether execution of the `Instruction` should be "awaited".||`boolean`|true|
 |comment|A property to use on your own purpose, ignored by the [Engine].||`string` or Array of `string`||
 |readProperty|||[ReadProperty]||
 |writeProperty|||[WriteProperty]||

@@ -42,16 +42,21 @@ export class Math extends VTMNode {
             return undefined;
         }
 
+        let expr = "";
+        let scope = undefined;
         try{
-            let expr = this.expr.resolveAndGet();
+            expr = this.expr.resolveAndGet();
             if(this.scope){
-                let scope = await this.scope.getValue();
+                scope = await this.scope.getValue();
                 return this.mathjs.evaluate(expr, scope);
             }else{
                 return this.mathjs.evaluate(expr);
             }            
         }catch(err){
-            u.fatal("Evaluation failed:\n" + err.message, this.getFullPath());
+            u.fatal("Evaluation failed: " + err.message
+                + "\nOriginal expression: \"" + this.expr.getUnresolvedPath() + "\""
+                + "\nResolved expression: \"" + expr + "\""
+                + (scope ? "\nScope: " + JSON.stringify(scope) : ""), this.getFullPath());
         }
         return undefined;   
     }

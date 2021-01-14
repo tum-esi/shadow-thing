@@ -2,7 +2,7 @@
 Interval is used in [Trigger] and [Loop] instances to achieve periodic behavior.
 
 ## Schema
-Type: [Math] - interval in milliseconds.
+Type: [Math] - interval in milliseconds. Can be also `0`, which stands for `"as frequent as possible"`.
 
 ## Behavior
 An `Interval` performs in a best-effort manner, i.e. it defines the `lower bound` of the time interval between two consecutive events, such as [Trigger] invocations or [Loop] iteratios. The `actual interval` depends on the processing time of the events:

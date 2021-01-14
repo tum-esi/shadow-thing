@@ -12,7 +12,7 @@ Type: `object`
 |increment|The number that will be added to the `iterator` after each iteration.||`number`|1|
 |instructions|The instructions to execute in every iteration.||Array of [Instruction], at least 1 item||
 |conditionFirst|Defines the order of *checking the condition* and *executing the iteration*, i.e. **`"do-while"`** or **`"while-do"`**.||`boolean`|true|
-|interval|A "best-effort" (see [Interval behavior][intbeh]) time interval between two consecutive iterations. If ommited, the loop will execute as fast as possible.||[Interval]||
+|interval|A "best-effort" (see [Interval behavior][intbeh]) time interval between two consecutive iterations. If is set to `"0"` or omitted, the loop will execute as fast as possible.||[Interval]||
 |comment|A property to use on your own purpose, ignored by the [Engine].||`string` or Array of `string`||
 
 **\*** additional properties are not allowed.
