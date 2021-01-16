@@ -522,6 +522,30 @@
             "type": "string",
             "enum": [ "break", "continue", "return", "shutdown" ]
         },
+        "vtd-instruction-invokeProcess": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "pointer": {
+                            "$ref": "#/definitions/vtd-pointer"
+                        },
+                        "smOperation": {
+                            "type": "string",
+                            "enum": ["transit", "reset", "error"]
+                        },
+                        "comment": {
+                            "$ref": "#/definitions/vtd-longString"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [ "pointer" ]
+                },
+                {
+                    "$ref": "#/definitions/vtd-pointer"
+                }
+            ]  
+        },
         "vtd-instruction": {
             "type": "object",
             "properties": {
@@ -556,7 +580,7 @@
                     "$ref": "#/definitions/vtd-instruction-emitEvent"
                 },
                 "invokeProcess": {
-                    "$ref": "#/definitions/vtd-pointer"
+                    "$ref": "#/definitions/vtd-instruction-invokeProcess"
                 },
                 "move": {
                     "$ref": "#/definitions/vtd-instruction-move"
@@ -683,6 +707,117 @@
                 "$ref": "#/definitions/vtd-trigger"
             }
         },
+        "vtd-stateMachineState": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "output": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "enter": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "exit": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "trans": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "reset": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "error": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false
+        },
+        "vtd-stateMachineTransitions": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/vtd-stateMachineTransition"
+            },
+            "minItems": 1
+        },
+        "vtd-stateMachineTransition": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "next": {
+                    "type": "string"
+                },
+                "input": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "condition": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "output": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "before": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "after": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": ["next"]
+        },
+        "vtd-stateMachineStates": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/vtd-stateMachineState"
+            }
+        },
+        "vtd-stateMachine": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "input": {
+                    "$ref": "#/definitions/vtd-dataSchema"
+                },
+                "output": {
+                    "$ref": "#/definitions/vtd-dataSchema"
+                },
+                "reset": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "error": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "states": {
+                    "$ref": "#/definitions/vtd-stateMachineStates"       
+                },
+                "initialState": {
+                    "type": "string"
+                },
+                "before": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "after": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "states", "initialState" ]
+        },
         "vtd-process": {
             "type": "object",
             "properties": {
@@ -700,13 +835,19 @@
                 },
                 "wait": {
                     "type": "boolean"
-                },
+                },         
+                "stateMachine": {
+                    "$ref": "#/definitions/vtd-stateMachine"
+                },    
                 "comment": {
                     "$ref": "#/definitions/vtd-longString"
                 }
             },
             "additionalProperties": false,
-            "required": [ "instructions" ]
+            "anyOf": [
+                {"required": [ "instructions" ]},
+                {"required": [ "stateMachine" ]}
+            ]            
         },
         "vtd-dataMap": {
             "type": "object",

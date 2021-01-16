@@ -94,6 +94,19 @@ The relative paths within a [DataHolder] are handled using [json-pointer].
 - ".../dmap/<dataHolder_name>`/path/to/some/array/<index>`"
 - etc.
 
+#### [Process]-specific tockens
+|Component|Tocken|Adressed entity type|
+|-|-|-|
+|`sm-state-buffer`| `"sm/state"` |[DataHolder]|
+|`sm-input-buffer`| `"sm/i"` |[DataHolder]|
+|`sm-output-buffer`| `"sm/o"` |[DataHolder]|
+##### Usage
+- "...proc/<process_name>/`sm/state`"
+- "...proc/<process_name>/`sm/i`"
+- "...proc/<process_name>/`sm/o`"
+- "./`sm/state`" ([Relative process path](#Relative-paths))
+- "./`sm/i`" ([Relative process path](#Relative-paths))
+- "./`sm/o`" ([Relative process path](#Relative-paths))
 
 ### Relative paths
 |Component|Tocken|Adressed entity type|

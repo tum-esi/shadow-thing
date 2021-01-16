@@ -1,4 +1,5 @@
 import {
+    StateMachine,
     Loop,
     Process,
     TryCatch,
@@ -62,6 +63,16 @@ export abstract class VTMNode {
      */
     public getParentLoop(): Loop {
         return this.getFirstParentOfType(Loop);
+    }
+    
+    /**
+     * Returns:
+     * - the first instance of 'StateMachine' on the path
+     * towards the root - if such instance exists
+     * - undefined - otherwise.
+     */
+    public getParentStateMachine(): StateMachine {
+        return this.getFirstParentOfType(StateMachine);
     }
 
     /**

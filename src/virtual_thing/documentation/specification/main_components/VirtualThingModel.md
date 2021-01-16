@@ -25,8 +25,9 @@ Extends [Thing] with the following differences:
 ### Start
 A `VirtualThingModel` starts when you run the program.  
 On start, the model:
-1. Invokes all the [Trigger] instances registered for the `"startup"` [RuntimeEvent] *in parallel*.
-2. Runs all the [Interval] instances that preriodically invoke [Triggers][Trigger], i.e. runs their respective [Processes][Process].
+1. Initializes and *awaits* all [Processes] and their [StateMachines][StateMachine]. Here, if the [State] defined by the `initialState` property of a [StateMachine] has an `action` that lasts long, then it will block further initialization of the `VirtualThingModel` until the `action` is complete.
+2. Invokes all the [Trigger] instances registered for the `"startup"` [RuntimeEvent] *in parallel*.
+3. Runs all the [Interval] instances that preriodically invoke [Triggers][Trigger], i.e. runs their respective [Processes][Process].
 
 ### Stop
 A `VirtualThingModel` instance can stop in the following cases:
@@ -58,6 +59,8 @@ On stop, the model:
 [Event]: Event.md
 [DataHolder]: DataHolder.md
 [Process]: Process.md
+[StateMachine]: Process.md#StateMachine
+[State]: Process.md#State
 [Sensor]: Sensor.md
 [Actuator]: Actuator.md
 

@@ -274,7 +274,7 @@ export class VirtualThingModel extends ComponentOwner {
                 pointer.init();
             }
             for(let process of this.registeredProcesses){
-                process.setup();
+                await process.setup();
             }  
             for(let trigger of this.registeredTriggers){
                 trigger.setup();
