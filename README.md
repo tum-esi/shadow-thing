@@ -19,7 +19,7 @@ All systems require:
 
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
 
-- Python 2.7 (v3.x.x is not supported)
+- Python 3.x
 - make
 - A proper C/C++ compiler toolchain, like GCC
 
@@ -381,7 +381,7 @@ docker-compose up
 1. [Thing Description Specification](https://w3c.github.io/wot-thing-description)
 2. [Scripting API Specification](https://w3c.github.io/wot-scripting-api/)
 3. [node-wot implementation of the Scripting API](https://github.com/eclipse/thingweb.node-wot)
-4. [Virtual Thing](./src/virtual_thing/README.md)
+4. [Virtual Thing]([vtd])
 
 
 [vtd]: src/virtual_thing/documentation/specification/index.md

@@ -36,6 +36,9 @@ Type: `object`
 ## Behavior
 - Each property of an `Instruction` object except `wait`, `delay` and `comment` is an `instruction-type` property, it defines what type of action the `Instruction` object should perform while being executed by the [Engine]. For simplicity, an `Instruction` object allows to specify multiple `instruction-type` properties, however, only one of them will have actual effect. So, please **do not specify more than 1 `instruction-type` property**.  
 
+<!--  TODO: please sounds interesting here, it makes want to try :D
+So what is the problem? which one of the will have effect?  -->
+
 - If no `instruction-type` property is specified and there is a `delay`, then the `Instruction` becomes a pure delay instruction.
 
 
