@@ -1,6 +1,8 @@
 # Virtual Thing Description Specification
 
-# Contents:
+<!-- TODO: Some introductory sentence here since this is the index that people will see first -->
+
+# Contents
 
 - [Introduction]
 - [Definitions]

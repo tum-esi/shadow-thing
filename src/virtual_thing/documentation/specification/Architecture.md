@@ -10,7 +10,7 @@ More on this in [Process], [Property], [Action] and [Event].
 
 
 ## Instructions
-There are two main types of instructions in a VTD:
+There are two main types of instructions in a [Virtual Thing Description][vtd]:
 - `Special` - with compact description, are able to execute a complex operation, e.g. invoke an [ActionAffordance] of a [ConsumedThing] passing an input payload, and store the returned result.
 - `General` - some basic control flow and assignment statements borrowed from programming languages, e.g. "if-else", "loop", "try-catch", "switch", etc. Such instructions, when used extensively, may lead to a bulky VTD. However, they allow to describe a custom complex behavior when needed.  
 More on this in [Instruction].

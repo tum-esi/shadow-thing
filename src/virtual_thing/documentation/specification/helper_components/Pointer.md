@@ -1,6 +1,8 @@
 # Pointer
 Pointers are used by various components of a [Virtual Thing Description][vtd] to access other components/values.
 
+<!-- TODO: There are multiple mentions of tocken. You meant token? or maybe acronym, shortcut? -->
+
 ## Schema
 Type: [ParameterizedString] - a value/expression that should `resolve` to a valid `path`
 

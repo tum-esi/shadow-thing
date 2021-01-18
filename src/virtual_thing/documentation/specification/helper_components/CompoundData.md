@@ -12,7 +12,7 @@ Type: `any`
         1. Substrings of the form `"${<[readOp:]path>}"` (dynamic parameters) are resolved exactly as explained in [ParameterizedString].
         2. Any substring of the form: `"{"copy": <[readOp:]path>}"` is treated as another form of a dynamic parameter and resolved using exactly the same algorithm as the dynamic parameters of a [ParameterizedString].
         
-        The difference between the two types of dynamic parameters is that the first is used if the resolved value eventually should be a json serialization (i.e. a string), whereas the second one is used when the resolved value should eventually become a json value. For clarity, please refer to the [examples](#examples).
+        The difference between the two types of dynamic parameters is that the first is used if the resolved value eventually should be a JSON serialization (i.e. a string), whereas the second one is used when the resolved value should eventually become a JSON value. For clarity, please refer to the [examples](#examples).
     2. The resulting resolved string is parsed and returned as a JSON value.
 
 > NOTE: The resolution method of `CompoundData` implies, that while defining a CompoundData instance, you cannot use constructs that match one of the above mentioned `dynamic parameter formats` as actual values, i.e. they will be resolved.

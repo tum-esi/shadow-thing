@@ -1,5 +1,5 @@
 # Virtual Thing CLI
-After building the `Shadow Thing`, you will get a CLI called `vt-cli.js` under `shadow-thing/dist/virtual_thing/src`. The CLI instantiates Virtual Things at http://localhost:8081 from Virtual Thing Descriptions (further as VTD) passed as CL arguments.  
+After building the `Shadow Thing`, you will get a CLI called `vt-cli.js` under `shadow-thing/dist/virtual_thing/src`. The CLI instantiates Virtual Things at http://localhost:8081 from Virtual Thing Descriptions (further as VTD) passed as command-line arguments.  
 
 
 Assuming your current directory is `shadow-thing`:
