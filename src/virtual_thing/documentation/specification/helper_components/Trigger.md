@@ -7,7 +7,7 @@ Type: `object`
 |----------|-------------|:---------:|------|:-------:|
 |runtimeEvent|A runtime event that should invoke the `Trigger`. ||[RuntimeEvent]||
 |interactionAffordance|Is used when the `runtimeEvent` corresponds to an interaction event. Is the name of the interaction affordance of the respective type, e.g. "myProperty". ||`string`||
-|interval|The invokation interval in milliseconds. Is used when the `Trigger` should be invoked periodically. ||[Interval]||
+|interval|A "best-effort" (see [Interval behavior][intbeh]) time interval between two consecutive invocations. Is used when the Trigger should be invoked periodically. If is set to `"0"`, invocation will happen as frequent as possible. ||[Interval]||
 |condition|If specified, the `Trigger` can be invoked only if the condition is met, i.e. the value of the expression can be interpreted as `true`.||[Math]||
 |wait|Whether execution of the `Process` should be "awaited" by the `Trigger`.||`boolean`|true|
 |comment|A property to use on your own purpose, ignored by the [Engine].||`string` or Array of `string`||

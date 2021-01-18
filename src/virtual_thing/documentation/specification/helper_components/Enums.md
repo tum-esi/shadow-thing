@@ -28,4 +28,11 @@ Allowed values:
 - `"pushCopy"`
 - `"concat"`
 
+# StateMachineOperation
+Type: `string`  
+Allowed values:
+- `"transit"`
+- `"reset"`
+- `"error"`
+
 

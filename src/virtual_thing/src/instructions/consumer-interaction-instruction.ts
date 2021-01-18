@@ -16,7 +16,7 @@ import {
 export abstract class ThingInteractionInstruction extends Instruction {
 
     private webUri: ParameterizedString = undefined;
-    private interAffName: ParameterizedString = undefined;
+    private interactionAffordanceName: ParameterizedString = undefined;
     private uriVariables: Map<string, ValueSource> = new Map();
 
     public constructor(name: string, parent: VTMNode, instrObj: IInstruction,
@@ -24,7 +24,7 @@ export abstract class ThingInteractionInstruction extends Instruction {
 
         super(name, parent, instrObj);
 
-        this.interAffName = new ParameterizedString("name", this, consumInstrObj.name);
+        this.interactionAffordanceName = new ParameterizedString("name", this, consumInstrObj.name);
 
         if(consumInstrObj.webUri){
             this.webUri = new ParameterizedString("webUri", this, consumInstrObj.webUri);
@@ -65,8 +65,7 @@ export abstract class ThingInteractionInstruction extends Instruction {
             }else{
                 consumedThing = this.getModel().getExposedThing();
             }
-            await this.interactWithThing(consumedThing, 
-                this.interAffName.resolveAndGet());
+            await this.interactWithThing(consumedThing, this.interactionAffordanceName.resolveAndGet());
         }catch(err){
             u.error(err.message, this.getFullPath());
         } 

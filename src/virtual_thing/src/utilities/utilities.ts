@@ -255,12 +255,25 @@ export class Utilities {
         }
     }
 
+    /*
+     * TODO this function deletes properties from VTD to make a usual TD. In the future,
+     * some of the properties deleted here may be included into the vocabulary of a usual TD.
+     * Revisit this function if that happens.
+     */
     /**
      * Extracts a WoT Thing Description object from a Virtual Thing Description object
-     * by taking a copy of the latter and removing all Virtual Thing-specific properties from it.
+     * by taking a copy of the latter and removing all Virtual Thing-specific properties from it.  
+     * 
      * @param vtd An object representing a valid Virtual Thing Description
      */
     public static extractTD(vtd: IVirtualThingDescription): WoT.ThingDescription {
+
+        let clearDataSchema = function(dataSchema: IDataSchema){
+            if(dataSchema){
+                delete dataSchema.fake;
+                delete dataSchema.schema;
+            }
+        }
 
         let clearBehavior = function(behavior: IBehavior){
             delete behavior.dataMap;
@@ -274,16 +287,22 @@ export class Utilities {
         if(td.properties){
             for (let key in td.properties){
                 clearBehavior(td.properties[key]);
+                clearDataSchema(td.properties[key]);
             }
         }
         if(td.actions){
             for (let key in td.actions){
                 clearBehavior(td.actions[key]);
+                clearDataSchema(td.actions[key].input);
+                clearDataSchema(td.actions[key].output);
             }
         }
         if(td.events){
             for (let key in td.events){
                 clearBehavior(td.events[key]);
+                clearDataSchema(td.events[key].data);
+                clearDataSchema(td.events[key].subscription);
+                clearDataSchema(td.events[key].cancellation);
             }
         }        
         delete td.sensors;

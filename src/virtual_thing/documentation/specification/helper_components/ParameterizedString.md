@@ -14,6 +14,8 @@ The `single string` ***may*** contain dynamic parameters of the form `${<pointer
 
 On each read of the value of a `ParameterizedString` by the [Engine], the parameters (if any) will be resolved iteratively in a `bottom-up` manner, i.e. the parameters at the lowest nesting level will be resolved first. Resolving means a parameter will be replaced by a `stringified representation` of the value obtained using the respective [Pointer]. After resolution, a resolved string is returned to the [Engine].
 
+> !!!WARNING Use dynamic parameters with caution. If a dynamic parameter resolves to a value that is the same dynamic parameter, an infinite recursion may occur.
+
 ### Parameter formatting
 
 The `stringified representation` mentioned in [Parameter resolution](#Parameter-resolution) can be formatted "prettily":

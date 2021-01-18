@@ -274,7 +274,7 @@ export class VirtualThingModel extends ComponentOwner {
                 pointer.init();
             }
             for(let process of this.registeredProcesses){
-                process.setup();
+                await process.setup();
             }  
             for(let trigger of this.registeredTriggers){
                 trigger.setup();
@@ -332,7 +332,7 @@ export class VirtualThingModel extends ComponentOwner {
      * 
      * Throws and error in case of a failure.
      * 
-     * @param uri A valid Http-based uri to consume a thing.
+     * @param uri A valid uri to consume a thing.
      * 
      * // TODO implement further protocols to consume things
      */

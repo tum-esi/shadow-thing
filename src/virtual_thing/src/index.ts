@@ -54,7 +54,7 @@ export {
     ReadOp,
     WriteOp
 } from "./components/data";
-export { Process, ProcessState } from "./components/process";
+export { Process, ProcessState, StateMachine, StateMachineOperation } from "./components/process";
 export { InteractionAffordance, RuntimeEvent } from "./components/interaction-affordance";
 export { Property } from "./components/property";
 export { Action } from "./components/action";
@@ -76,8 +76,8 @@ export {
     IInstruction,
     IInstructionControl,
     IInstructionEmitEvent,
-    IInstructionIfElse as IInstructionIfelse,
-    IInstructionIfElseIf as IInstructionIfelseIf,
+    IInstructionIfElse,
+    IInstructionIfElseIf,
     IInstructionInvokeAction,
     IInstructionConsole,
     IInstructionLoop,
@@ -85,13 +85,18 @@ export {
     IInstructionSwitch,
     IInstructionSwitchCase,
     IInstructionSwitchDefault,
-    IInstructionTryCatch as IInstructionTry,
+    IInstructionTryCatch,
     IInstructionWriteProperty,
     IInstructions,
     IInstructionuctionMove,
     IVirtualThingDescription,
     IPointer,
     IProcess,
+    IStateMachine,
+    IStateMachineState,
+    IStateMachineTransition,
+    IStateMachineTransitions,
+    IStateMachineStates,
     IProcessMap,
     ITrigger,
     ITriggers,

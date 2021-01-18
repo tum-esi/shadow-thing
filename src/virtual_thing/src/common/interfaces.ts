@@ -7,7 +7,8 @@ import {
     RuntimeEvent,
     ReadOp,
     WriteOp,
-    ControlType
+    ControlType,
+    StateMachineOperation
 } from "../index";
 
 
@@ -20,14 +21,15 @@ export type ICompoundData = any;
 export type IEnumReadOp = ReadOp;
 export type IEnumWriteOp = WriteOp;
 export type IPointer = IParameterizedString;
+export type IInstructionInvokeProcess = IInstructionInvokeProcessObj | IPointer;
 export type IInstructionConsole = IParameterizedString;
 export type IInstructionControl = ControlType;
-export type IProperty = IInteractionAffordance;
 export type ISensor = IBehavior;
 export type IActuator = IBehavior;
 export type IInstructionUnsubscribeEvent = IInstructionThingInteraction;
 export type IInstructionUnobserveProperty = IInstructionThingInteraction;
 export type IMath = IMathObj | IParameterizedString;
+export type IStateMachineTransitions = IStateMachineTransition[];
 
 export interface IVirtualThingDescription extends WoT.ThingDescription {
     title?: string,
@@ -60,6 +62,11 @@ export interface IInteractionAffordance extends IBehavior {
     uriVariables?: IDataMap;
 }
 
+
+export interface IProperty extends IInteractionAffordance, IDataSchema {
+
+}
+
 export interface IAction extends IInteractionAffordance {
     input?: IDataSchema;
     output?: IDataSchema;
@@ -83,11 +90,48 @@ export interface IProcessMap {
     [k: string]: IProcess;
 }
 
+export interface IStateMachineState {
+    delay?: IMath;
+    output?: IValueSource;
+    enter?: IInstructions;
+    exit?: IInstructions;
+    trans?: IStateMachineTransitions;
+    reset?: IStateMachineTransitions;
+    error?: IStateMachineTransitions;
+}
+
+export interface IStateMachineTransition {
+    delay?: IMath;
+    next: string;
+    input?: IValueSource;
+    condition?: IMath;
+    output?: IValueSource;
+    before?: IInstructions;
+    after?: IInstructions;
+}
+
+export interface IStateMachineStates {
+    [k: string]: IStateMachineState;
+}
+
+export interface IStateMachine {
+    delay?: IMath;
+    input?: IDataSchema;
+    output?: IDataSchema;
+    error?: IStateMachineTransitions;
+    reset?: IStateMachineTransitions;
+    states: IStateMachineStates;
+    initialState: string;
+    before?: IInstructions;
+    after?: IInstructions;
+}
+
 export interface IProcess {
     triggers?: ITriggers;
     condition?: IMath;
     dataMap?: IDataMap;
-    instructions: IInstructions;
+    instructions?: IInstructions;
+    stateMachine?: IStateMachine;
     wait?: boolean;
 }
 
@@ -118,7 +162,7 @@ export interface IInstruction {
     subscribeEvent?: IInstructionSubscribeEvent;
     unsubscribeEvent?: IInstructionUnsubscribeEvent;
     emitEvent?: IInstructionEmitEvent;
-    invokeProcess?: IPointer;
+    invokeProcess?: IInstructionInvokeProcess;
     move?: IInstructionuctionMove;
     ifelse?: IInstructionIfElse;
     switch?: IInstructionSwitch;
@@ -188,6 +232,11 @@ export interface IInstructionEmitEvent {
 export interface IInstructionuctionMove {
     from: IValueSource;
     to?: IValueTarget;
+}
+
+export interface IInstructionInvokeProcessObj {
+    pointer: IPointer;
+    smOperation?: StateMachineOperation;
 }
 
 export interface IInstructionIfElse {

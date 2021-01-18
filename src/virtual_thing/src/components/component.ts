@@ -20,6 +20,8 @@ export enum ComponentType {
     Actuator = "act",
     Data = "dmap",
     Process = "proc",
+    StateMachine = "sm",
+    State = "state",
     UriVariable = "uv",
     Input = "i",
     Output = "o",
