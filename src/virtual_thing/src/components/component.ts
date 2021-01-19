@@ -7,7 +7,7 @@ import {
 
 
 /**
- * Values in this enum define the allowed pointer tockens
+ * Values in this enum define the allowed pointer tokens
  * that can be used in Virtual Thing Description to address
  * their respective instances of 'Component'.
  */

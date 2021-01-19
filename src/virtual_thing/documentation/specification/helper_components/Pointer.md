@@ -1,7 +1,6 @@
 # Pointer
 Pointers are used by various components of a [Virtual Thing Description][vtd] to access other components/values.
 
-<!-- TODO: There are multiple mentions of tocken. You meant token? or maybe acronym, shortcut? -->
 
 ## Schema
 Type: [ParameterizedString] - a value/expression that should `resolve` to a valid `path`
@@ -35,8 +34,8 @@ A valid `path` of a `Pointer` is a string that:
 
 ### Absolute paths
 The paths that start from the root, i.e. [VirtualThingModel].
-#### Component map tockens
-|Map|Tocken|Adressed entity type|
+#### Component map tokens
+|Map|Token|Adressed entity type|
 |-|-|-|
 |`processes`| `"proc"` |Map of [Process]|
 |`dataMap`| `"dmap"` |Map of [DataHolder]|
@@ -56,16 +55,16 @@ The paths that start from the root, i.e. [VirtualThingModel].
 - "`sen`/<sensor_name>/`dmap`/<dataHolder_name>"
 - "`act`/<actuator_name>/`proc`/<process_name>"
 
-#### [Property]-specific tockens
-|Component|Tocken|Adressed entity type|
+#### [Property]-specific tokens
+|Component|Token|Adressed entity type|
 |-|-|-|
 |`property-buffer`| `"i"` or `"o"` |[DataHolder]|
 
 ##### Usage
 - "p/<property_name>/`i`" or "p/<property_name>/`o`" (both point to the same entity)
 
-#### [Action]-specific tockens
-|Component|Tocken|Adressed entity type|
+#### [Action]-specific tokens
+|Component|Token|Adressed entity type|
 |-|-|-|
 |`input-buffer`| `"i"` |[DataHolder]|
 |`output-buffer`| `"o"` |[DataHolder]|
@@ -74,8 +73,8 @@ The paths that start from the root, i.e. [VirtualThingModel].
 - "a/<action_name>/`i`"
 - "a/<action_name>/`o`"
 
-#### [Event]-specific tockens
-|Component|Tocken|Adressed entity type|
+#### [Event]-specific tokens
+|Component|Token|Adressed entity type|
 |-|-|-|
 |`data-buffer`| `"d"` |[DataHolder]|
 |`subscription-buffer`| `"s"` |[DataHolder]|
@@ -86,8 +85,8 @@ The paths that start from the root, i.e. [VirtualThingModel].
 - "e/<event_name>/`s`"
 - "e/<event_name>/`c`"
 
-#### [DataHolder]-specific tockens
-When tockens reach a [DataHolder], the subsequent tockens are treated as a relative path within the [DataHolder].
+#### [DataHolder]-specific tokens
+When tokens reach a [DataHolder], the subsequent tokens are treated as a relative path within the [DataHolder].
 The relative paths within a [DataHolder] are handled using [json-pointer].
 ##### Usage
 - ".../dmap/<dataHolder_name>" - no relative path (root), i.e. the entire value of the [DataHolder]
@@ -96,8 +95,8 @@ The relative paths within a [DataHolder] are handled using [json-pointer].
 - ".../dmap/<dataHolder_name>`/path/to/some/array/<index>`"
 - etc.
 
-#### [Process]-specific tockens
-|Component|Tocken|Adressed entity type|
+#### [Process]-specific tokens
+|Component|Token|Adressed entity type|
 |-|-|-|
 |`sm-state-buffer`| `"sm/state"` |[DataHolder]|
 |`sm-input-buffer`| `"sm/i"` |[DataHolder]|
@@ -106,12 +105,9 @@ The relative paths within a [DataHolder] are handled using [json-pointer].
 - "...proc/<process_name>/`sm/state`"
 - "...proc/<process_name>/`sm/i`"
 - "...proc/<process_name>/`sm/o`"
-- "./`sm/state`" ([Relative process path](#Relative-paths))
-- "./`sm/i`" ([Relative process path](#Relative-paths))
-- "./`sm/o`" ([Relative process path](#Relative-paths))
 
 ### Relative paths
-|Component|Tocken|Adressed entity type|
+|Component|Token|Adressed entity type|
 |-|-|-|
 |The [Process] in whose scope the pointer is.| `"."` |[Process]|
 |The [Behavior] in whose scope the pointer is.| `".."` |[Behavior]|
@@ -136,9 +132,9 @@ Any valid expression described in [DateTime] is a valid pointer path.
 - `"dt/unix"`
 - etc.
 
-### Single-tocken values
+### Single-token values
 
-|Value|Tocken|Adressed entity type|
+|Value|Token|Adressed entity type|
 |-|-|-|
 |The path of the `Pointer instance` self, i.e. where the Pointer is located within the [VirtualThingModel].| `"path"` |`string`|
 |The path of the [Process] in whose scope the pointer is.| `"processPath"` |`string`|

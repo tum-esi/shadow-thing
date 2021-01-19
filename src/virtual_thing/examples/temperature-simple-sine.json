@@ -1,6 +1,6 @@
 {
     "title": "TemperatureSimpleSine",
-    "description": "This thing simualates a temperature signal as a sine wave with f=0.1Hz, A=2, DC offset = 20, sampled on each property read.",
+    "description": "This thing simualates a temperature signal as a sine wave with f = 0.1Hz, A = 2, DC offset = 20, sampled on each property read.",
 
     "properties": {
         "temperature": {

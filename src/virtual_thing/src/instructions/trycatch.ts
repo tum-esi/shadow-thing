@@ -30,14 +30,14 @@ export class TryCatch extends Instruction {
     }
 
     /**
-     * Check is the given string is a pointer tocken that
+     * Check is the given string is a pointer token that
      * is used to obtain the error message of a 'trycatch' instruction
      * by a pointer which is in the scope of the 'trycatch' instruction.
      * 
-     * @param tocken 
+     * @param token 
      */
-    public static isErrorMessageTocken(tocken: string): boolean {
-        return tocken.match(this.erroMessageExpression) != undefined;
+    public static isErrorMessageToken(token: string): boolean {
+        return token.match(this.erroMessageExpression) != undefined;
     }
 
     public getErrorMessage(): string {

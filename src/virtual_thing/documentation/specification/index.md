@@ -1,6 +1,6 @@
 # Virtual Thing Description Specification
 
-<!-- TODO: Some introductory sentence here since this is the index that people will see first -->
+This document provides an insight into Virtual Thing Description (VTD) and its components. For each component, its schema and behavior description are provided in the corresponding section. Examples of components and complete VTDs are given where necessary.
 
 # Contents
 

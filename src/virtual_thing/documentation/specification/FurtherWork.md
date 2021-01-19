@@ -121,7 +121,7 @@ The following example suggests how the Process could be `reused` in this scenari
     ]
 }
 ```
-This particular implementation of the Process has only one assumption: it must be located inside a [Behavior] instance that has a buffer accessible by the tocken `"o"`, i.e. output (see the line with `"pointer": "../o"`). Such instances can be [Properties][Property] and [Actions][Action]. For an explaination, please refer to [Pointer].
+This particular implementation of the Process has only one assumption: it must be located inside a [Behavior] instance that has a buffer accessible by the token `"o"`, i.e. output (see the line with `"pointer": "../o"`). Such instances can be [Properties][Property] and [Actions][Action]. For an explaination, please refer to [Pointer].
 
 Now, the Process could be reused in a VTD using e.g. "$ref":
 

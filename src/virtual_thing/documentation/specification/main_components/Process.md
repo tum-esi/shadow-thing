@@ -81,7 +81,7 @@ Error handling happens **only** if the Process is invoked using the [invokeProce
 ### Input, output, and state
 For each StateMachine, the [Engine] creates a `sm-state-buffer` buffer to store the name of the actual [State](#State), and for each of the specified properties `input` and `output`, it creates respectively `sm-input-buffer` and `sm-output-buffer` buffers to store respectively the input and the output values of the StateMachine.
 
-The `sm-input-buffer`, `sm-output-buffer`, and `sm-state-buffer` can be accessed using [Pointer] (see [Process specific tockens][proc_tockens]). That means, the `input` can be written using a [Move] instruction, and the `output` and the `state` can be accessed as any other [DataHolder] instance.
+The `sm-input-buffer`, `sm-output-buffer`, and `sm-state-buffer` can be accessed using [Pointer] (see [Process specific tokens][proc_tokens]). That means, the `input` can be written using a [Move] instruction, and the `output` and the `state` can be accessed as any other [DataHolder] instance.
 
 > Hint: Changing the input of a StateMachine does not initiate state transition automatically. To initiate a state change based on a new input, the Process should be invoked explicitly.
 
@@ -335,7 +335,7 @@ The state machine looks big as it contains all possible additional custom "befor
 
 [Math]: ../helper_components/Math.md
 [Pointer]: ../helper_components/Pointer.md
-[proc_tockens]: ../helper_components/Pointer.md#Process-specific-tockens
+[proc_tokens]: ../helper_components/Pointer.md#Process-specific-tokens
 [Delay]: ../helper_components/Delay.md
 [Trigger]: ../helper_components/Trigger.md
 [ValueSource]: ../helper_components/ValueSource.md

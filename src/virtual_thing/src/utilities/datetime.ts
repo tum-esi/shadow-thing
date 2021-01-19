@@ -2,8 +2,8 @@ import { VTMNode, u } from "../index";
 import { format } from 'date-fns'
 
 /** 
- * This enum defines the tockens that cat be used in
- * pointers after a 'dt' tocken to access DateTime values, e.g.:
+ * This enum defines the tokens that cat be used in
+ * pointers after a 'dt' token to access DateTime values, e.g.:
  * 'dt/unix'.
  */
 enum DateTimeComponent {

@@ -44,17 +44,17 @@ export class Pointer extends VTMNode {
      */ 
     private resolvedOnce: boolean = false;
 
-    // A tocken to access the instance of 'Process' in whose scope the pointer is
-    private readonly processTocken = ".";
+    // A token to access the instance of 'Process' in whose scope the pointer is
+    private readonly processToken = ".";
 
-    // A tocken to access the instance of 'Behavior' in whose scope the pointer is
-    private readonly behaviorTocken = "..";
+    // A token to access the instance of 'Behavior' in whose scope the pointer is
+    private readonly behaviorToken = "..";
 
-    // A tocken to access the full path of the pointer self
-    private readonly pathTocken: string = "path";
-    private readonly procPathTocken: string = "processPath";
-    private readonly behaviorPathTocken: string = "behaviorPath";
-    private readonly modelPathTocken: string = "modelPath";
+    // A token to access the full path of the pointer self
+    private readonly pathToken: string = "path";
+    private readonly procPathToken: string = "processPath";
+    private readonly behaviorPathToken: string = "behaviorPath";
+    private readonly modelPathToken: string = "modelPath";
     
     
     /**
@@ -172,7 +172,7 @@ export class Pointer extends VTMNode {
         }
 
         // If pointer targets an error message of a 'TryCatch' block (if any) in whose scope the pointer is.
-        if(TryCatch.isErrorMessageTocken(pathStr)){
+        if(TryCatch.isErrorMessageToken(pathStr)){
             this.targetNode = this.getParentTry();
             if(!this.targetNode){
                 u.fatal("No parent \"TryCatch\" instruction found");
@@ -186,11 +186,11 @@ export class Pointer extends VTMNode {
             u.fatal("Invalid pointer.");
         }
 
-        // If the first tocken targets properties related to the pointer self
-        if(tokens[0] == this.pathTocken
-            || tokens[0] == this.procPathTocken
-            || tokens[0] == this.behaviorPathTocken
-            || tokens[0] == this.modelPathTocken){
+        // If the first token targets properties related to the pointer self
+        if(tokens[0] == this.pathToken
+            || tokens[0] == this.procPathToken
+            || tokens[0] == this.behaviorPathToken
+            || tokens[0] == this.modelPathToken){
             this.targetNode = this;
             this.relativePathInTargetNode = tokens[0];
             return;
@@ -198,21 +198,21 @@ export class Pointer extends VTMNode {
 
         let relativePathStartIndex = 1;
 
-        // If the first tocken targets the parent process
-        if(tokens[0] == this.processTocken){            
+        // If the first token targets the parent process
+        if(tokens[0] == this.processToken){            
             this.targetNode = this.getProcess();
         
-        // If the first tocken targets the parent behavior (e.g. inter. afford.)
-        }else if(tokens[0] == this.behaviorTocken){
+        // If the first token targets the parent behavior (e.g. inter. afford.)
+        }else if(tokens[0] == this.behaviorToken){
             this.targetNode = this.getBehavior();
 
-        // Else the first tocken should target a child component of the Model
+        // Else the first token should target a child component of the Model
         }else{
 
             this.targetNode = this.getModel().getChildComponent(tokens[0] as ComponentType);
         }
         
-        // resolve the rest of the tockens iteratively
+        // resolve the rest of the tokens iteratively
         while(relativePathStartIndex < tokens.length){
 
             /**
@@ -224,7 +224,7 @@ export class Pointer extends VTMNode {
 
             /**
              * If targetNode has reached an instance of 'DataHolder',
-             * there can be no further node, hence the rest of the tockens,
+             * there can be no further node, hence the rest of the tokens,
              * if present, must be the relative path
              */
             }else if(this.targetNode instanceof DataHolder){
@@ -238,8 +238,8 @@ export class Pointer extends VTMNode {
     /**
      * Retrieves the 'relative' part of the pointer.
      * 
-     * @param tokens The pointer tockens
-     * @param startIndex The index of the tocken from which the 'relaitve'
+     * @param tokens The pointer tokens
+     * @param startIndex The index of the token from which the 'relaitve'
      * part of the pointer starts.
      */
     private retrieveRelativePathInTargetNode(tokens: string[], startIndex: number) {
@@ -268,15 +268,15 @@ export class Pointer extends VTMNode {
         return this.relativePathInTargetNode;
     }
 
-    private getOwnProperty(tocken: string){
-        switch(tocken){
-            case this.pathTocken:
+    private getOwnProperty(token: string){
+        switch(token){
+            case this.pathToken:
                 return this.getFullPath();
-            case this.procPathTocken:
+            case this.procPathToken:
                 return this.getProcess().getFullPath();
-            case this.behaviorPathTocken:
+            case this.behaviorPathToken:
                 return this.getBehavior() ? this.getBehavior().getFullPath() : undefined;
-            case this.modelPathTocken:
+            case this.modelPathToken:
                 return this.getModel().getFullPath();
             default:
                 return undefined;
