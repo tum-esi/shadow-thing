@@ -28,7 +28,8 @@
             }],
             "maximum": 1000,
             "writeOnly": false,
-            "type": "number"
+            "type": "number",
+            "fake": true
         }
     }
 }

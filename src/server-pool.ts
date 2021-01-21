@@ -8,7 +8,7 @@ import { Servient, Helpers } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 import { CoapServer } from "@node-wot/binding-coap";
 
-import { VirtualThing } from "./virtual-thing";
+import { VirtualThing } from "./virtual_thing/src/index";
 
 const NUM_CPUS = require('os').cpus().length;
 const DEFAULT_CONFIG_PATH = "./config-files/server-config.json";
