@@ -34,6 +34,7 @@ export { CompoundData } from "./utilities/compound-data";
 export { ValueSource } from "./utilities/value-source";
 export { ValueTarget } from "./utilities/value-target";
 export { File } from "./utilities/file";
+export { ConsumedThings } from "./utilities/consumed-things";
 
 export {
     ComponentType,

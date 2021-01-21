@@ -11,12 +11,10 @@ import {
     Process,
     Property,
     Action,
+    ConsumedThings,
     u
 } from "../index";
 
-const Servient = require('@node-wot/core').Servient;
-const Helpers = require('@node-wot/core').Helpers;
-const HttpClientFactory = require('@node-wot/binding-http').HttpClientFactory;
 
 const Ajv = require('ajv');
 
@@ -39,7 +37,7 @@ export class VirtualThingModel extends ComponentOwner {
     private ajv = new Ajv();
 
     private exposedThing: WoT.ExposedThing = undefined;
-    private consumedThings: Map<string, WoT.ConsumedThing> = new Map();
+    private consumedThings: ConsumedThings = new ConsumedThings();
 
     private stateListeners: ModelStateListener[] = [];
     private pointers: Pointer[] = [];
@@ -325,33 +323,7 @@ export class VirtualThingModel extends ComponentOwner {
         this.stop();
     } 
 
-    /**
-     * Returns a ConsumedThing that has the given uri.
-     * If the ConsumedThing is consumed for the first time,
-     * it will be stored for future references.  
-     * 
-     * Throws and error in case of a failure.
-     * 
-     * @param uri A valid uri to consume a thing.
-     * 
-     * // TODO implement further protocols to consume things
-     */
-    public async getConsumedThing(uri: string): Promise<WoT.ConsumedThing> {
-        if(!this.consumedThings.has(uri)){
-            try{
-                let servient = new Servient();                
-                servient.addClientFactory(new HttpClientFactory(null));
-                let wotHelper = new Helpers(servient);
-    
-                let TD = await wotHelper.fetch(uri);
-                let WoT = await servient.start();                
-                let consumedThing = await WoT.consume(TD);
-
-                this.consumedThings.set(uri, consumedThing);
-            }catch(err){
-                u.fatal("Failed to consume thing: " + uri, this.getRelativePath());
-            }
-        }
-        return this.consumedThings.get(uri);
+    public getConsumedThings(): ConsumedThings {
+        return this.consumedThings;
     }
 }

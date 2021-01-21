@@ -61,7 +61,7 @@ export abstract class ThingInteractionInstruction extends Instruction {
             let consumedThing: WoT.ConsumedThing = undefined;
             if(this.webUri){
                 let resolvedWebUri = this.webUri.resolveAndGet();
-                consumedThing = await this.getModel().getConsumedThing(resolvedWebUri);
+                consumedThing = await this.getModel().getConsumedThings().get(resolvedWebUri);
             }else{
                 consumedThing = this.getModel().getExposedThing();
             }
