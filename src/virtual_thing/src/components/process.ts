@@ -627,7 +627,7 @@ class StateMachineState extends VTMNode {
 
     public async doExit(){
         try{            
-            if(this.enter){
+            if(this.exit){
                 // Execute exit sequence
                 await this.exit.execute();
             }

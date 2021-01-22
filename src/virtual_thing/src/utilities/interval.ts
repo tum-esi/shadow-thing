@@ -21,7 +21,6 @@ export class Interval extends VTMNode {
     private started: boolean = false;
 
     //#region auxiliary properties
-    private lastInterval: number = 0;
     private lastTs: number = 0;
     //#endregion
 
@@ -78,16 +77,7 @@ export class Interval extends VTMNode {
         if(interval < 0){
             u.fatal(`Invalid interval: ${interval}.`, this.getFullPath());
         }
-
-        /**
-         * If the value of the required changed since the last tick,
-         * the timer is reset to start over using the new interval value.
-         */
-        if(interval != this.lastInterval){
-            this.lastInterval = interval;
-            this.reset();
-        }
-
+        
         /**
          * To achieve the best possible synchronization with 'ideal' tick timestamps
          * and remove additive error, the delay value of 'setTimeout()' is calculated
@@ -109,7 +99,7 @@ export class Interval extends VTMNode {
             }            
         }else{
             this.lastTs = nextTs;
-        }             
+        }
     }
 
     /**
