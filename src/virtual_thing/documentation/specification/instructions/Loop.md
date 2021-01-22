@@ -17,6 +17,8 @@ Type: `object`
 
 **\*** additional properties are not allowed.
 
+> !!!WARNING Please use loops with caution. If a loop has no [Instruction] and no [Interval], i.e. a busy waiting loop, then it may block the program thread. If such a loop is supposed to wait for a long time, e.g. while polling something using the `"condition"` property, then it is recommended to specify some [Interval] (e.g. at least few ms) such that the loop periodically yields the program control while awaiting the [Interval].
+
 
 [Engine]: ../Definitions.md#virtual-thing-engine-and-engine
 

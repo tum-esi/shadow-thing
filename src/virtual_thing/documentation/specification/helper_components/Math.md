@@ -60,7 +60,7 @@ Some example values:
     }
     ```
 - Compare stringified objects:
-    `"compareText("${path/to/obj1}, ${path/to/obj2})"`
+    `"compareText(\"${path/to/obj1}\", \"${path/to/obj2}\")"`
 
 - ...and many more possibilities (see [mathjs function reference][mathjsfunc] and [mathjs expression syntax][mathjsexprsyntax])
     
