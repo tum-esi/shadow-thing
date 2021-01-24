@@ -1,0 +1,915 @@
+{
+    "title": "Shadow Thing Virtual Thing Description Schema",
+    "description": "JSON Schema for validating Shadow Thing Virtual TD-specific part of TD.",
+    "$schema ": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "vtd-dataSchema": {
+            "type": "object",
+            "properties": {   
+                "oneOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vtd-dataSchema"
+                    }
+                },             
+                "enum": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "format": {
+                    "type": "string"
+                },
+                "const": {},
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "boolean",
+                        "integer",
+                        "number",
+                        "string",
+                        "object",
+                        "array",
+                        "null"
+                    ]
+                },
+                "items": {
+                    "oneOf": [{
+                            "$ref": "#/definitions/vtd-dataSchema"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vtd-dataSchema"
+                            }
+                        }
+                    ]
+                },
+                "maxItems": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "minItems": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "minimum": {
+                    "type": "number"
+                },
+                "maximum": {
+                    "type": "number"
+                },
+                "properties": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/vtd-dataSchema"
+                    }
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "default": {},
+                "fake": {
+                    "type": "boolean"
+                },
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        "vtd-longString": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "vtd-parameterizedString": {
+            "$ref": "#/definitions/vtd-longString"        
+        },
+        "vtd-valueSourceMap": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/vtd-valueSource"
+            }
+        },
+        "vtd-valueSource": {
+            "type": "object",
+            "properties": {
+                "math": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "compound": {
+                    "$ref": "#/definitions/vtd-compoundData"
+                },
+                "pointer": {
+                    "$ref": "#/definitions/vtd-pointer"
+                },
+                "file": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "operation": {
+                    "$ref": "#/definitions/vtd-enum-readOp"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "oneOf": [
+                { "required": [ "math" ] },
+                { "required": [ "compound" ] },
+                { "required": [ "pointer" ] },
+                { "required": [ "file" ] }
+            ]
+        },
+        "vtd-valueTarget": {
+            "type": "object",
+            "properties": {
+                "pointer": {
+                    "$ref": "#/definitions/vtd-pointer"
+                },
+                "file": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "operation": {
+                    "$ref": "#/definitions/vtd-enum-writeOp"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "oneOf": [
+                { "required": [ "pointer" ] },
+                { "required": [ "file" ] }
+            ]
+        },
+        "vtd-compoundData": {
+            
+        },
+        "vtd-enum-readOp": {
+            "type": "string",
+            "enum": [ "get", "copy", "pop", "length", "parse" ]
+        },
+        "vtd-enum-writeOp": {
+            "type": "string",
+            "enum": [ "set", "copy", "push", "pushCopy", "concat" ]
+        },
+        "vtd-pointer": {
+            "$ref": "#/definitions/vtd-parameterizedString"
+        },
+        "vtd-math": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "expr": {
+                            "$ref": "#/definitions/vtd-parameterizedString"
+                        },
+                        "scope": {
+                            "$ref": "#/definitions/vtd-valueSource"
+                        },
+                        "conf": {
+                            "type": "object"
+                        },
+                        "comment": {
+                            "$ref": "#/definitions/vtd-longString"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [ "expr" ]
+                },
+                {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                }
+            ]            
+        },
+        "vtd-delay": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*(ms|s)$"
+        },
+        "vtd-instruction-readProperty": {
+            "type": "object",
+            "properties": {
+                "webUri": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "name": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "uriVariables": {
+                    "$ref": "#/definitions/vtd-valueSourceMap"
+                },
+                "result": {
+                    "$ref": "#/definitions/vtd-valueTarget"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "name" ]
+        },
+        "vtd-instruction-writeProperty": {
+            "type": "object",
+            "properties": {
+                "webUri": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "name": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "uriVariables": {
+                    "$ref": "#/definitions/vtd-valueSourceMap"
+                },
+                "value": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "name" ]
+        },
+        "vtd-instruction-observeProperty": {
+            "type": "object",
+            "properties": {
+                "webUri": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "name": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "uriVariables": {
+                    "$ref": "#/definitions/vtd-valueSourceMap"
+                },
+                "newValue": {
+                    "$ref": "#/definitions/vtd-valueTarget"
+                },
+                "onChange": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "name" ]
+        },
+        "vtd-instruction-unobserveProperty": {
+            "type": "object",
+            "properties": {
+                "webUri": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "name": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "uriVariables": {
+                    "$ref": "#/definitions/vtd-valueSourceMap"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "name" ]
+        },
+        "vtd-instruction-invokeAction": {
+            "type": "object",
+            "properties": {
+                "webUri": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "name": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "uriVariables": {
+                    "$ref": "#/definitions/vtd-valueSourceMap"
+                },
+                "input": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "output": {
+                    "$ref": "#/definitions/vtd-valueTarget"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "name" ]
+        },
+        "vtd-instruction-subscribeEvent": {
+            "type": "object",
+            "properties": {
+                "webUri": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "name": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "uriVariables": {
+                    "$ref": "#/definitions/vtd-valueSourceMap"
+                },
+                "data": {
+                    "$ref": "#/definitions/vtd-valueTarget"
+                },
+                "onEmit": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "name" ]
+        },
+        "vtd-instruction-unsubscribeEvent": {
+            "type": "object",
+            "properties": {
+                "webUri": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "name": {
+                    "$ref": "#/definitions/vtd-parameterizedString"
+                },
+                "uriVariables": {
+                    "$ref": "#/definitions/vtd-valueSourceMap"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "name" ]
+        },
+        "vtd-instruction-emitEvent": {
+            "type": "object",
+            "properties": {
+                "pointer": {
+                    "$ref": "#/definitions/vtd-pointer"
+                },
+                "data": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "pointer" ]
+        },
+        "vtd-instruction-ifelse-if": {
+            "type": "object",
+            "properties": {
+                "condition": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "instructions": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "condition" ]
+        },
+        "vtd-instruction-ifelse": {
+            "type": "object",
+            "properties": {
+                "if": {
+                    "$ref": "#/definitions/vtd-instruction-ifelse-if"
+                },
+                "elif": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vtd-instruction-ifelse-if"
+                    }
+                },
+                "else": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "if" ]
+        },
+        "vtd-instruction-move": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "to": {
+                    "$ref": "#/definitions/vtd-valueTarget"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "from" ]
+        },
+        "vtd-instruction-switch-case": {
+            "type": "object",
+            "properties": {
+                "case": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "break": {
+                    "type": "boolean"
+                },
+                "instructions": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "case" ]
+        },
+        "vtd-instruction-switch": {
+            "type": "object",
+            "properties": {
+                "switch": {
+                    "$ref": "#/definitions/vtd-pointer"
+                },
+                "cases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vtd-instruction-switch-case"
+                    },
+                    "minItems": 1
+                },
+                "default": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "switch", "cases" ]
+        },
+        "vtd-instruction-loop": {
+            "type": "object",
+            "properties": {
+                "interval": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "iterator": {
+                    "$ref": "#/definitions/vtd-pointer"
+                },
+                "initialValueExpr": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "increment": {
+                    "type": "number"
+                },
+                "condition": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "instructions": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "conditionFirst": {
+                    "type": "boolean"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "dependencies": {
+                "initialValueExpr": [ "iterator" ]
+            }
+        },
+        "vtd-instruction-trycatch": {
+            "type": "object",
+            "properties": {
+                "try": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "catch": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "try" ]
+        },
+        "vtd-instruction-console": {
+            "$ref": "#/definitions/vtd-parameterizedString"
+        },
+        "vtd-instruction-control": {
+            "type": "string",
+            "enum": [ "break", "continue", "return", "shutdown" ]
+        },
+        "vtd-instruction-invokeProcess": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "pointer": {
+                            "$ref": "#/definitions/vtd-pointer"
+                        },
+                        "smOperation": {
+                            "type": "string",
+                            "enum": ["transit", "reset", "error"]
+                        },
+                        "comment": {
+                            "$ref": "#/definitions/vtd-longString"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [ "pointer" ]
+                },
+                {
+                    "$ref": "#/definitions/vtd-pointer"
+                }
+            ]  
+        },
+        "vtd-instruction": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "wait": {
+                    "type": "boolean"
+                },
+                "readProperty": {
+                    "$ref": "#/definitions/vtd-instruction-readProperty"
+                },
+                "writeProperty": {
+                    "$ref": "#/definitions/vtd-instruction-writeProperty"
+                },
+                "observeProperty": {
+                    "$ref": "#/definitions/vtd-instruction-observeProperty"
+                },
+                "unobserveProperty": {
+                    "$ref": "#/definitions/vtd-instruction-unobserveProperty"
+                },
+                "invokeAction": {
+                    "$ref": "#/definitions/vtd-instruction-invokeAction"
+                },
+                "subscribeEvent": {
+                    "$ref": "#/definitions/vtd-instruction-subscribeEvent"
+                },
+                "unsubscribeEvent": {
+                    "$ref": "#/definitions/vtd-instruction-unsubscribeEvent"
+                },
+                "emitEvent": {
+                    "$ref": "#/definitions/vtd-instruction-emitEvent"
+                },
+                "invokeProcess": {
+                    "$ref": "#/definitions/vtd-instruction-invokeProcess"
+                },
+                "move": {
+                    "$ref": "#/definitions/vtd-instruction-move"
+                },
+                "ifelse": {
+                    "$ref": "#/definitions/vtd-instruction-ifelse"
+                },
+                "switch": {
+                    "$ref": "#/definitions/vtd-instruction-switch"
+                },
+                "loop": {
+                    "$ref": "#/definitions/vtd-instruction-loop"
+                },
+                "trycatch": {
+                    "$ref": "#/definitions/vtd-instruction-trycatch"
+                },
+                "log": {
+                    "$ref": "#/definitions/vtd-instruction-console"
+                },
+                "info": {
+                    "$ref": "#/definitions/vtd-instruction-console"
+                },
+                "warn": {
+                    "$ref": "#/definitions/vtd-instruction-console"
+                },
+                "debug": {
+                    "$ref": "#/definitions/vtd-instruction-console"
+                },
+                "error": {
+                    "$ref": "#/definitions/vtd-instruction-console"
+                },
+                "fake": {
+                    "$ref": "#/definitions/vtd-pointer"
+                },
+                "control": {
+                    "$ref": "#/definitions/vtd-instruction-control"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "anyOf": [
+                { "required": [ "delay" ] },
+                { "required": [ "readProperty" ] },
+                { "required": [ "writeProperty" ] },
+                { "required": [ "invokeAction" ] },
+                { "required": [ "subscribeEvent" ] },
+                { "required": [ "unsubscribeEvent" ] },
+                { "required": [ "emitEvent" ] },
+                { "required": [ "invokeProcess" ] },
+                { "required": [ "move" ] },
+                { "required": [ "ifelse" ] },
+                { "required": [ "switch" ] },
+                { "required": [ "loop" ] },
+                { "required": [ "trycatch" ] },
+                { "required": [ "log" ] },
+                { "required": [ "info" ] },
+                { "required": [ "warn" ] },
+                { "required": [ "debug" ] },
+                { "required": [ "error" ] },
+                { "required": [ "fake" ] },
+                { "required": [ "control" ] }
+            ]
+        },
+        "vtd-enum-runtimeEvent": {
+            "type": "string",
+            "enum": [
+                "invokeAction",
+                "readProperty",
+                "writeProperty",
+                "emitEvent",
+                "startup",
+                "shutdown",
+                "subscribeEvent",
+                "unsubscribeEvent"
+            ]
+        },
+        "vtd-trigger": {
+            "type": "object",
+            "properties": {
+                "runtimeEvent": {
+                    "$ref": "#/definitions/vtd-enum-runtimeEvent"
+                },
+                "interactionAffordance": {
+                    "type": "string"
+                },
+                "interval": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "condition": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "wait": {
+                    "type": "boolean"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "oneOf": [
+                {
+                  "required": [ "runtimeEvent" ]
+                },
+                {
+                  "required": [ "interval" ]
+                }
+            ],
+            "dependencies": {
+                "interactionAffordance": [ "runtimeEvent" ]
+            }
+        },
+        "vtd-instructions": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/vtd-instruction"
+            },
+            "minItems": 1
+        },
+        "vtd-triggers": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/vtd-trigger"
+            }
+        },
+        "vtd-stateMachineState": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "output": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "enter": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "exit": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "trans": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "reset": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "error": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false
+        },
+        "vtd-stateMachineTransitions": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/vtd-stateMachineTransition"
+            },
+            "minItems": 1
+        },
+        "vtd-stateMachineTransition": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "next": {
+                    "type": "string"
+                },
+                "input": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "condition": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "output": {
+                    "$ref": "#/definitions/vtd-valueSource"
+                },
+                "before": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "after": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": ["next"]
+        },
+        "vtd-stateMachineStates": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/vtd-stateMachineState"
+            }
+        },
+        "vtd-stateMachine": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "input": {
+                    "$ref": "#/definitions/vtd-dataSchema"
+                },
+                "output": {
+                    "$ref": "#/definitions/vtd-dataSchema"
+                },
+                "reset": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "error": {
+                    "$ref": "#/definitions/vtd-stateMachineTransitions"   
+                },
+                "states": {
+                    "$ref": "#/definitions/vtd-stateMachineStates"       
+                },
+                "initialState": {
+                    "type": "string"
+                },
+                "before": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "after": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "required": [ "states", "initialState" ]
+        },
+        "vtd-process": {
+            "type": "object",
+            "properties": {
+                "triggers": {
+                    "$ref": "#/definitions/vtd-triggers"
+                },
+                "condition": {
+                    "$ref": "#/definitions/vtd-math"
+                },
+                "dataMap": {
+                    "$ref": "#/definitions/vtd-dataMap"
+                },
+                "instructions": {
+                    "$ref": "#/definitions/vtd-instructions"
+                },
+                "wait": {
+                    "type": "boolean"
+                },         
+                "stateMachine": {
+                    "$ref": "#/definitions/vtd-stateMachine"
+                },    
+                "comment": {
+                    "$ref": "#/definitions/vtd-longString"
+                }
+            },
+            "additionalProperties": false,
+            "anyOf": [
+                {"required": [ "instructions" ]},
+                {"required": [ "stateMachine" ]}
+            ]            
+        },
+        "vtd-dataMap": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/vtd-dataSchema"
+            }
+        },
+        "vtd-dataSchemaMap": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/vtd-dataSchema"
+            }
+        },
+        "vtd-processMap": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/vtd-process"
+            }
+        },
+        "vtd-behaviorMap": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/vtd-behavior"
+            }
+        },
+        "vtd-behavior": {
+            "type": "object",
+            "properties": {
+                "dataMap": {
+                    "$ref": "#/definitions/vtd-dataMap"
+                },
+                "processes": {
+                    "$ref": "#/definitions/vtd-processMap"
+                }
+            }
+        }        
+    },
+    "type": "object",
+    "properties": {        
+        "properties": {
+            "$ref": "#/definitions/vtd-behaviorMap"
+        },
+        "actions": {
+            "$ref": "#/definitions/vtd-behaviorMap"
+        },
+        "events": {
+            "$ref": "#/definitions/vtd-behaviorMap"
+        },
+        "sensors": {
+            "$ref": "#/definitions/vtd-behaviorMap"
+        },
+        "actuators": {
+            "$ref": "#/definitions/vtd-behaviorMap"
+        },
+        "dataMap": {
+            "$ref": "#/definitions/vtd-dataMap"
+        },
+        "processes": {
+            "$ref": "#/definitions/vtd-processMap"
+        },
+        "dataSchemas": {
+            "$ref": "#/definitions/vtd-dataSchemaMap"
+        }
+    }
+}

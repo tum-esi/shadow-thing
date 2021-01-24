@@ -20,7 +20,8 @@
             "type": "string",
             "readOnly": true,
             "enum": ["Ready", "Brewing", "Error"],
-            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/state"}]
+            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/state"}],
+            "fake": true
         },
         "waterStatus": {
             "type": "integer",
@@ -28,7 +29,8 @@
             "unit": "%",
             "maximum": 100,
             "minimum": 0,
-            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/water"}]
+            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/water"}],
+            "fake": true
         },
         "coffeeStatus": {
             "type": "integer",
@@ -36,7 +38,8 @@
             "unit": "%",
             "maximum": 100,
             "minimum": 0,
-            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/coffee"}]
+            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/coffee"}],
+            "fake": true
         },
         "binStatus": {
             "type": "integer",
@@ -44,7 +47,8 @@
             "unit": "%",
             "maximum": 100,
             "minimum": 0,
-            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/bin"}]
+            "forms": [{"href": "http://127.0.0.1:8080/virtual-coffee-machine/properties/bin"}],
+            "fake": true
         }
     },
     "actions": {

@@ -12,7 +12,7 @@ import { MqttBrokerServer, MqttClientFactory} from "@node-wot/binding-mqtt";
 import * as winston from "winston";
 
 import { defaultQuery, configurationQuery }  from "./user-query";
-import { VirtualThing } from "./virtual-thing";
+import { VirtualThing } from "./virtual_thing/src/index";
 import { DigitalTwin } from "./digital-twin";
 
 const Ajv = require('ajv');
@@ -188,45 +188,45 @@ const generateDefaultConfig = async (tdPaths: Array<string>, twinPaths: Array<st
         .then((args: Array<string>) => {
         
         // Configuration for each Thing
-        args.forEach( (td: WoT.ThingDescription) => {
-            let tdJson: WoT.ThingInstance = JSON.parse(td);
+        args.forEach( (tdString: string) => {
+            let td: WoT.ThingDescription = JSON.parse(tdString);
 
             let eventIntervals: IntervalsConfig = {};
             let twinPropertyCaching: IntervalsConfig = {};
     
             // Configuration for events and protocol detection
-            for(let event in tdJson.events){
+            for(let event in td.events){
                 eventIntervals[event] = DEFAULT_EVENT_INTERVAL;
-                tdJson.events[event].forms.forEach( (form) => {
+                td.events[event].forms.forEach( (form) => {
                     let protocol = form.href.substr(0, form.href.indexOf(':'));
                     protocols.add(protocol);
                 });
             }
             
             // Configuration for properties and protocol detection
-            for(let prop in tdJson.properties){
+            for(let prop in td.properties){
                 twinPropertyCaching[prop] = DEFAULT_TWIN_CACHING;
-                tdJson.properties[prop].forms.forEach( (form) => {
+                td.properties[prop].forms.forEach( (form) => {
                     let protocol = form.href.substr(0, form.href.indexOf(':'));
                     protocols.add(protocol);
                 });
             }
             
             // Protocol detection for actions
-            for(let action in tdJson.actions){
-                tdJson.actions[action].forms.forEach( (form) => {
+            for(let action in td.actions){
+                td.actions[action].forms.forEach( (form) => {
                     let protocol = form.href.substr(0, form.href.indexOf(':'));
                     protocols.add(protocol);
                 });
             }
             
             // Protocol detection if base is specified
-            if(tdJson.base){
-                let protocol = tdJson.base.substr(0, tdJson.base.indexOf(':'));
+            if(td.base){
+                let protocol = td.base.substr(0, td.base.indexOf(':'));
                 protocols.add(protocol);
             }
 
-            config.things[tdJson.id] = {
+            config.things[td.id] = {
                 nInstance: 1,
                 eventIntervals,
                 twinPropertyCaching
@@ -292,7 +292,7 @@ const startLocalMqttServer = (port: number) => {
     });
 }
 
-const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], twins: WoT.ThingInstance[], models: string[]) => {
+const startVirtualization = (config: ConfigFile, things: WoT.ThingDescription[], twins: WoT.ThingDescription[], models: string[]) => {
     // Set logging level according to config
     setLogLevel(config);
 
@@ -360,22 +360,28 @@ const startVirtualization = (config: ConfigFile, things: WoT.ThingInstance[], tw
     // Start Servient, virtual things and digital twins
     servient.start()
     .then((thingFactory) => {
-        things.forEach((td: WoT.ThingInstance) => {
+        things.forEach((td: WoT.ThingDescription) => {
             if (config.things.hasOwnProperty(td.id)) {
                 if(config.things[td.id].nInstance === 1){
-                    new VirtualThing(td, thingFactory, config.things[td.id]).expose();
+                    new VirtualThing(td, thingFactory, config.things[td.id])
+                        .produce().then(vt => vt.expose());
                     console.info(`Exposing ${td.title}`);
                 }else{
                     var i;
                     for(i = 0; i<config.things[td.id].nInstance; i++){
-                        new VirtualThing({...td, title: td.title + (i+1), id: td.id + ':n-' + (i+1)}, thingFactory, config.things[td.id]).expose();
+                        new VirtualThing({...td, title: td.title + (i+1), id: td.id + ':n-' + (i+1)},
+                                thingFactory,
+                                config.things[td.id])
+                            .produce().then(vt => vt.expose());
                         console.info(`Exposing instance ${i+1} of ${td.title}`);
                     }
                 }
             } else {
-                let vt = new VirtualThing(td, thingFactory);
-                console.info("Exposing " + td.title);
-                vt.expose();
+                new VirtualThing(td, thingFactory)
+                    .produce().then(vt => {
+                        vt.expose();
+                        console.info("Exposing " + td.title);
+                    });
             }
         });
         twins.forEach((td) => {
@@ -521,11 +527,11 @@ confirmConfiguration(configPath, tdPaths, twinTdPaths, digitalTwinFlag)
         startLocalMqttServer(config.servient.mqtt.local.port);
     }
     Promise.all(readTdFiles(tdPaths))
-    .then( (tdArgs: WoT.ThingDescription[]) => {
+    .then( (tdArgs: string[]) => {
         return Promise.all(readTdFiles(twinTdPaths))
-        .then( (twinArgs: WoT.ThingDescription[]) => {
-            let tdList: WoT.ThingInstance[] = tdArgs.map(arg => JSON.parse(arg));
-            let twinList: WoT.ThingInstance[] = twinArgs.map(arg => JSON.parse(arg));
+        .then( (twinArgs: string[]) => {
+            let tdList: WoT.ThingDescription[] = tdArgs.map(arg => JSON.parse(arg));
+            let twinList: WoT.ThingDescription[] = twinArgs.map(arg => JSON.parse(arg));
             startVirtualization(config, tdList, twinList, modelPaths);
         });
     }).catch((error) => console.error(error));

@@ -1,0 +1,14 @@
+{
+    "title": "TemperatureFake",
+    "description": "This thing simualates a temperature signal as a fake number defined by the schema of the property.",
+
+    "properties": {
+        "temperature": {
+            "type": "number",
+            "minimum": 16,
+            "maximum": 24,
+            "readOnly": true,
+            "fake": true
+        }
+    }
+}

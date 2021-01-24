@@ -53,7 +53,7 @@ const readFilePromise = (path: string) => {
     });
 }
 
-const generateTests = (config: TestConfig, thing: WoT.ThingInstance) => {
+const generateTests = (config: TestConfig, thing: WoT.ThingDescription) => {
     let counter: number = 0;
 
     config.modes.forEach( (mode: string) => {
@@ -174,8 +174,8 @@ readFilePromise(TEST_CONFIG_PATH).then( (config: string) => {
         fs.mkdirSync(`./tests`, { recursive: true });
     }
     fs.copyFileSync(TEST_CONFIG_PATH, `./tests/test-config.json`); // to know the config for all the tests
-    readFilePromise(testConfig.tdPath).then( (thing: WoT.ThingDescription) => {
-        let numTests = generateTests(testConfig, JSON.parse(thing));
+    readFilePromise(testConfig.tdPath).then( (td: WoT.ThingDescription) => {
+        let numTests = generateTests(testConfig, td);
         log(`Number of tests to execute : ${numTests}`);
         if(generateOnly){
             return;

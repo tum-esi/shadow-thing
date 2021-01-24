@@ -34,7 +34,8 @@
                 }
             ],
             "writeOnly": false,
-            "observable": false
+            "observable": false,
+            "fake": true
         },
         "waterStatus": {
             "type": "integer",
@@ -52,7 +53,8 @@
                 }
             ],
             "writeOnly": false,
-            "observable": false
+            "observable": false,
+            "fake": true
         },
         "coffeeStatus": {
             "type": "integer",
@@ -70,7 +72,8 @@
                 }
             ],
             "writeOnly": false,
-            "observable": false
+            "observable": false,
+            "fake": true
         },
         "binStatus": {
             "type": "integer",
@@ -88,7 +91,8 @@
                 }
             ],
             "writeOnly": false,
-            "observable": false
+            "observable": false,
+            "fake": true
         }
     },
     "actions": {

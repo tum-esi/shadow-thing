@@ -25,28 +25,8 @@ for (let index = 0; index < directory.length; index++) {
     console.log(curTimes)
     //doing cleaning has to be done here since grubs have 100 value limitation
     var result = grubbs.test(curTimes);
-    // console.log(result)
-    // console.log(result[0])
-    // console.log(result[0].dataSet)
-    // console.log(result[0].average)
-    // var cleaned = result[1];
-    // console.log(cleaned)
-    // process.exit(0)
     var cleaned = {}
-    // if (result[2]==undefined) {
-        // if (result[1] == undefined) {
-        //     console.log("0 levels")
-        //     cleaned = result[0];
-        // }
-        // else {
-        //     cleaned = result[1];
-        //      // console.log(result[1])
-        //     console.log("1 level")
-        // }
-    // } else {
-    //     cleaned = result[2];
-    //     console.log("2 levels")
-    // }
+
     cleaned = result[0];
     
     console.log(cleaned)
@@ -68,29 +48,7 @@ for (let index = 0; index < directory.length; index++) {
 }
 console.log(totalTimes)
 
-// var myCsv = fs.readFileSync("tests/real/r1/#1/instance_1/prop_intensity.csv").toString(); 
-// var manualJSON = csvjson.toColumnArray(myCsv, options);
-// var times = manualJSON['Interval in ms'];
-// console.log(times)
-
-
-
-// var result = grubbs.test(totalTimes);
-// var cleaned = result[2];
-// var dataSet = cleaned.dataSet;
-// var cleanedDataSet =[];
-// for (let index = 0; index < dataSet.length; index++) {
-//     if(dataSet[index]){
-//         cleanedDataSet.push(dataSet[index])
-//     }
-    
-// }
-// var average = cleaned.average;
-// var stdev = cleaned.stdev;
-// console.log(dataSet);
 var stdev = std(totalTimes)
 var average = sum(totalTimes)/totalTimes.length
 console.log(average);
 console.log(stdev);
-// console.log(cleanedDataSet);
-

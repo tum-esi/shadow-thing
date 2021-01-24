@@ -8,6 +8,7 @@ Creates and deploys a Thing based on its TD
 ## Why use this software
 
 - You want to create a mashup scenario or a test script for a WoT Thing that you only have a TD for. This tool allows you to simulate that Thing based only on its TD.
+- You want to simulate a back-end logic of a WoT Thing without programming it. You can create a [Virtual Thing Description (VTD)][vtd] of that Thing and deploy it using this tool.
 - You have a resource constrained device and you want to deploy its copy on a more powerful device to handle more Consumers (clients). You can deploy shadow-thing in twin mode.
 - You want to change security scheme or the protocol of a device, without modifying it.  You can deploy shadow-thing in twin mode.
 
@@ -21,7 +22,7 @@ All systems require:
 
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
 
-- Python 2.7 (v3.x.x is not supported)
+- Python 3.x
 - make
 - A proper C/C++ compiler toolchain, like GCC
 
@@ -84,9 +85,9 @@ or if you created a link, you can just call
 shadow-thing
 ```
 
-### Start a Shadow Thing based on any TD
+### Start a Shadow Thing based on any TD or VTD
 
-You can create a shadow thing based on any given TD:
+You can create a shadow thing based on any given TD/VTD:
 
 ```
 node dist/cli.js path/to/my/example_td.json
@@ -383,6 +384,7 @@ docker-compose up
 1. [Thing Description Specification](https://w3c.github.io/wot-thing-description)
 2. [Scripting API Specification](https://w3c.github.io/wot-scripting-api/)
 3. [node-wot implementation of the Scripting API](https://github.com/eclipse/thingweb.node-wot)
+4. [Virtual Thing]([src/virtual_thing/documentation/specification/index.md])
 
 ## Continuous Integration Workflow with Github Actions
 

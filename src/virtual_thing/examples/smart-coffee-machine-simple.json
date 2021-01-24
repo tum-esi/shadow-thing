@@ -1,0 +1,284 @@
+{
+    "title": "Virtual-Coffee-Machine",
+    "description": "A virtual coffee machine to learn the WoT TD standard",
+    "properties": {
+        "state": {
+            "type": "string",
+            "enum": ["Ready", "Brewing", "Error", "Maintenance"],
+            "readOnly": true,
+            "observable": false
+        },
+        "waterStatus": {"schema": "status"},
+        "coffeeStatus": {"schema": "status"},
+        "milkStatus": {"schema": "status"},
+        "chocolateStatus": {"schema": "status"},
+        "binStatus": {"schema": "status"},
+        "completeState": {"schema": "completeState"}
+    },
+    "actions": {
+        "brew": {
+            "input": {"schema": "drinks"},
+            "output": {"schema": "completeState"}
+        },
+        "abort": {"output": {"schema": "completeState"}},
+        "reset": {"output": {"schema": "completeState"}},
+        "maintain": {"output": {"schema": "completeState"}},
+        "shutdown": {}
+    },
+    "events": {
+        "maintenance": {"data": {"type": "string"}},
+        "error": {"data": {"type": "string"}}
+    },
+
+
+
+    "dataSchemas": {
+        "status": {
+            "type": "integer",
+            "readOnly": true,
+            "unit": "%",
+            "maximum": 100,
+            "minimum": 0,
+            "observable": false
+        },
+        "drinks": {
+            "type": "string",
+            "enum": ["latte-machiato", "espresso", "cappuccino", "americano", "chocolate", "water"],
+            "default": "espresso"
+        },
+        "completeState": {
+            "readOnly": true,
+            "observable": false,
+            "type": "object",
+            "properties": {
+                "waterStatus": {                    
+                    "type": "integer",
+                    "unit": "%",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "coffeeStatus": {                    
+                    "type": "integer",
+                    "unit": "%",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "milkStatus": {                    
+                    "type": "integer",
+                    "unit": "%",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "chocolateStatus": {                    
+                    "type": "integer",
+                    "unit": "%",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "binStatus": {                    
+                    "type": "integer",
+                    "unit": "%",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "state": {                    
+                    "type": "string",
+                    "enum": ["Ready", "Brewing", "Error", "Maintenance"]
+                }
+            }
+        }
+    },
+
+
+
+    "dataMap": {
+        "espresso": {"const": {"water": 3, "milk": 0, "chocolate": 0, "coffee": 6}},
+        "americano": {"const": {"water": 6, "milk": 0, "chocolate": 0, "coffee": 6}},
+        "cappuccino": {"const": {"water": 3, "milk": 3, "chocolate": 0, "coffee": 6}},
+        "latte-machiato": {"const": {"water": 3, "milk": 6, "chocolate": 0, "coffee": 6}},
+        "chocolate": {"const": {"water": 0, "milk": 0, "chocolate": 6, "coffee": 0}},
+        "water": {"const": {"water": 6, "milk": 0, "chocolate": 0, "coffee": 0}},
+
+        "minWater": {"const": 10},
+        "minMilk": {"const": 10},
+        "minChocolate": {"const": 10},
+        "minCoffee": {"const": 10},
+        "maxBin": {"const": 80},
+
+        "coffeeToBinScaler": {"const": 2},
+
+        "brewDurationScaler": {"const": 50},
+        "brewDurationExpr": {
+            "const": "(${dmap/${a/brew/i}/water} * 10 + ${dmap/${a/brew/i}/milk} * 10 + ${dmap/${a/brew/i}/chocolate} * 10 + ${dmap/${a/brew/i}/coffee} * 5) * ${dmap/brewDurationScaler}"
+        },
+
+        "enableErrorEvent": {"const": true},
+        "errorEventIntervalExpr": {"const": "100000"}
+    },
+
+
+
+    "processes": {
+
+        "maintainHandler": {
+            "triggers": [
+                {"runtimeEvent": "startup"},
+                {"runtimeEvent": "invokeAction", "interactionAffordance": "maintain"}
+            ],
+            "instructions": [
+                {"move": {"from": {"compound": 100}, "to": {"pointer": "p/waterStatus/o"}}},
+                {"move": {"from": {"compound": 100}, "to": {"pointer": "p/milkStatus/o"}}},
+                {"move": {"from": {"compound": 100}, "to": {"pointer": "p/chocolateStatus/o"}}},
+                {"move": {"from": {"compound": 100}, "to": {"pointer": "p/coffeeStatus/o"}}},
+                {"move": {"from": {"compound": 0}, "to": {"pointer": "p/binStatus/o"}}},
+                {"invokeProcess": {"pointer": "proc/sm", "smOperation": "reset"}}
+            ]
+        },
+
+        "brewHandler": {
+            "triggers": [{"runtimeEvent": "invokeAction", "interactionAffordance": "brew"}],
+            "instructions": [
+                {"move": {"from": {"compound": "brew"}, "to": {"pointer": "proc/sm/sm/i"}}},
+                {"invokeProcess": "proc/sm"}
+            ]
+        },
+
+        "abortHandler": {
+            "triggers": [{"runtimeEvent": "invokeAction", "interactionAffordance": "abort"}],
+            "instructions": [{"move": {"from": {"compound": true}, "to": {"pointer": "proc/enterBrewing/dmap/exitBrewing"}}}]
+        },
+
+        "shutdownHandler": {
+            "triggers": [{"runtimeEvent": "invokeAction", "interactionAffordance": "shutdown"}],
+            "instructions": [{"move": {"from": {"compound": true}, "to": {"pointer": "proc/enterBrewing/dmap/exitBrewing"}}}]
+        },
+
+        "resetHandler": {
+            "triggers": [{"runtimeEvent": "invokeAction", "interactionAffordance": "reset"}],
+            "instructions": [{"invokeProcess": {"pointer": "proc/sm", "smOperation": "reset"}}]
+        },
+
+        "completeStateUpdater": {
+            "dataMap": {"data": {"schema": "completeState"}},
+            "instructions": [
+                {"move": {"from": {"pointer": "proc/sm/sm/state"}, "to": {"pointer": "p/state/o"}}},
+                {
+                    "move": {
+                        "from": {
+                            "compound": {
+                                "water": {"copy": "p/waterStatus/o"},
+                                "milk": {"copy": "p/milkStatus/o"},
+                                "chocolate": {"copy": "p/chocolateStatus/o"},
+                                "coffee": {"copy": "p/coffeeStatus/o"},
+                                "bin": {"copy": "p/binStatus/o"},
+                                "state": {"copy": "p/state/o"}
+                            }
+                        },
+                        "to": {"pointer": "./dmap/data"}
+                    }
+                },
+                {"move": {"from": {"pointer": "./dmap/data"}, "to": {"pointer": "p/completeState/o"}}},
+                {"move": {"from": {"pointer": "./dmap/data"}, "to": {"pointer": "a/brew/o"}}},
+                {"move": {"from": {"pointer": "./dmap/data"}, "to": {"pointer": "a/abort/o"}}},
+                {"move": {"from": {"pointer": "./dmap/data"}, "to": {"pointer": "a/reset/o"}}},
+                {"move": {"from": {"pointer": "./dmap/data"}, "to": {"pointer": "a/maintain/o"}}}
+            ]
+        },
+
+        "errorEmitter": {
+            "triggers": [{"interval": "${dmap/errorEventIntervalExpr}"}],
+            "condition": "${dmap/enableErrorEvent}",
+            "instructions": [{"invokeProcess": {"pointer": "proc/sm", "smOperation": "error"}}]
+        },
+
+        "sm": {
+            "stateMachine": {
+                "input": {
+                    "type": "string",
+                    "enum": ["brew", "complete", "maintenance"]
+                },
+                "after": [{"invokeProcess": "proc/completeStateUpdater"}],
+                "error": [{"next": "Error"}],
+                "initialState": "Ready",
+                "states": {
+                    "Error": {
+                        "reset": [{"next": "Ready"}],
+                        "enter": [{"emitEvent": {"pointer": "e/error", "data": {"compound": "Error occurred."}}}]
+                    },
+                    "Maintenance": {
+                        "reset": [{"next": "Ready"}],
+                        "enter": [{"emitEvent": {"pointer": "e/maintenance", "data": {"compound": "Maintenance needed."}}}]
+                    },
+                    "Ready": {
+                        "trans": [{"input": {"compound": "brew"}, "next": "Brewing"}]
+                    },
+                    "Brewing": {
+                        "trans": [
+                            {"input": {"compound": "complete"}, "next": "Ready"},
+                            {"input": {"compound": "maintenance"}, "next": "Maintenance"}
+                        ],
+                        "enter": [{"invokeProcess": "proc/enterBrewing"}],
+                        "exit": [{"move": {"from": {"compound": true}, "to": {"pointer": "proc/enterBrewing/dmap/exitBrewing"}}}]
+                    }
+                }
+            }
+        },
+
+        "enterBrewing": {
+            "dataMap": {
+                "exitBrewing": {"type": "boolean"},
+                "brewStartTs": {"type": "number"},
+                "needMaintenanceExpr": {
+                    "const": "(${p/waterStatus/o} < ${dmap/minWater} or ${p/milkStatus/o} < ${dmap/minMilk} or ${p/coffeeStatus/o} < ${dmap/minCoffee} or ${p/chocolateStatus/o} < ${dmap/minChocolate} or ${p/binStatus/o} > ${dmap/maxBin})"
+                },
+                "brewInProgressExpr": {"const": "(${dt/unix} - ${./dmap/brewStartTs} < ${dmap/brewDurationExpr})"}
+            },
+            "instructions": [
+                {"move": {"from": {"compound": false}, "to": {"pointer": "./dmap/exitBrewing"}}},
+                {
+                    "ifelse": {
+                        "if": {
+                            "condition": "${./dmap/needMaintenanceExpr}",
+                            "instructions": [
+                                {"move": {"from": {"compound": "maintenance"}, "to": {"pointer": "proc/sm/sm/i"}}},
+                                {"invokeProcess": "proc/sm"},
+                                {"control": "return"}
+                            ]
+                        }
+                    }
+                },
+                {"move": {"from": {"math": "${dt/unix}"}, "to": {"pointer": "./dmap/brewStartTs"}}},
+                {
+                    "loop": {
+                        "condition": "not ${./dmap/exitBrewing} and ${./dmap/brewInProgressExpr}",
+                        "interval": "10"
+                    }
+                },
+                {
+                    "ifelse": {
+                        "if": {
+                            "condition": "not ${./dmap/exitBrewing}",
+                            "instructions": [
+                                {"move": {"from": {"math": "${p/waterStatus/o} - ${dmap/${a/brew/i}/water}"}, "to": {"pointer": "p/waterStatus/o"}}},
+                                {"move": {"from": {"math": "${p/milkStatus/o} - ${dmap/${a/brew/i}/milk}"}, "to": {"pointer": "p/milkStatus/o"}}},
+                                {"move": {"from": {"math": "${p/chocolateStatus/o} - ${dmap/${a/brew/i}/chocolate}"}, "to": {"pointer": "p/chocolateStatus/o"}}},
+                                {"move": {"from": {"math": "${p/coffeeStatus/o} - ${dmap/${a/brew/i}/coffee}"}, "to": {"pointer": "p/coffeeStatus/o"}}},
+                                {"move": {"from": {"math": "${p/binStatus/o} + ${dmap/${a/brew/i}/coffee} * ${dmap/coffeeToBinScaler}"}, "to": {"pointer": "p/binStatus/o"}}}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "ifelse": {
+                        "if": {
+                            "condition": "${./dmap/needMaintenanceExpr}",
+                            "instructions": [{"move": {"from": {"compound": "maintenance"}, "to": {"pointer": "proc/sm/sm/i"}}}]
+                        },
+                        "else": [{"move": {"from": {"compound": "complete"}, "to": {"pointer": "proc/sm/sm/i"}}}]
+                    }
+                },
+                {"invokeProcess": "proc/sm"}
+            ]
+        }
+    }
+}

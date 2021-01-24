@@ -1,0 +1,109 @@
+{
+    "title": "TrafficLightStateMachine",
+    "properties": {
+        "state": {}
+    },
+    "actions": {
+        "reset": {"output":{}},
+        "error": {"output":{}},
+        "transit": {"output":{}}
+    },
+
+    "processes": {
+
+        "resetHandler": {
+            "triggers": [{"runtimeEvent": "invokeAction", "interactionAffordance": "reset"}],
+            "instructions": [
+                {"invokeProcess": {"pointer": "proc/trafficLight", "smOperation": "reset"}},
+                {"move": {"from": {"compound": "New state: ${proc/trafficLight/sm/state}"}, "to": {"pointer": "a/reset/o"}}}
+            ]
+        },
+
+        "errorHandler": {
+            "triggers": [{"runtimeEvent": "invokeAction", "interactionAffordance": "error"}],
+            "instructions": [
+                {"invokeProcess": {"pointer": "proc/trafficLight", "smOperation": "error"}},
+                {"move": {"from": {"compound": "New state: ${proc/trafficLight/sm/state}"}, "to": {"pointer": "a/error/o"}}}
+            ]
+        },
+
+        "transitHandler": {
+            "triggers": [{"runtimeEvent": "invokeAction", "interactionAffordance": "transit"}],
+            "instructions": [
+                {"invokeProcess": "proc/trafficLight"},
+                {"move": {"from": {"compound": "New state: ${proc/trafficLight/sm/state}"}, "to": {"pointer": "a/transit/o"}}}
+            ]
+        },
+
+        "readHandler": {
+            "triggers": [{"runtimeEvent": "readProperty", "interactionAffordance": "state"}],
+            "instructions": [
+                {"move": {"from": {"pointer": "proc/trafficLight/sm/state"}, "to": {"pointer": "p/state/o"}}}
+            ]
+        },
+
+        "trafficLight": {
+            "stateMachine": {
+                "before": [
+                    {"log": "trafficLight: Process call at: ${dt/iso}"},
+                    {"log": "trafficLight: Before State Machine update."}
+                ],
+                "after": [{"log": "trafficLight: After State Machine update."}],
+                "reset": [
+                    {
+                        "next": "red",
+                        "before": [{"log": "trafficLight: Before SM Reset"}],
+                        "after": [{"log": "trafficLight: After SM Reset"}]
+                    }
+                ],
+                "error": [
+                    {
+                        "next": "error",
+                        "before": [{"log": "trafficLight: Before SM Error"}],
+                        "after": [{"log": "trafficLight: After SM Error"}]
+                    }
+                ],
+                "states": {
+                    "error": {
+                        "exit": [{"log": "trafficLight: Exit Error"}],
+                        "enter": [{"log": "trafficLight: Enter Error"}]
+                    },
+                    "red": {
+                        "exit": [{"log": "trafficLight: Exit Red"}],
+                        "enter": [{"log": "trafficLight: Enter Red"}],
+                        "trans": [
+                            {
+                                "next": "green",
+                                "before": [{"log": "trafficLight: Before Transition Red ----> Green"}],
+                                "after": [{"log": "trafficLight: After Transition Red ----> Green"}]
+                            }
+                        ]
+                    },
+                    "yellow": {
+                        "exit": [{"log": "trafficLight: Exit Yellow"}],
+                        "enter": [{"log": "trafficLight: Enter Yellow"}],
+                        "trans": [
+                            {
+                                "next": "red",
+                                "before": [{"log": "trafficLight: Before Transition Yellow ----> Red"}],
+                                "after": [{"log": "trafficLight: After Transition Yellow ----> Red"}]
+                            }
+                        ]
+                    },
+                    "green": {
+                        "exit": [{"log": "trafficLight: Exit Green"}],
+                        "enter": [{"log": "trafficLight: Enter Green"}],
+                        "trans": [
+                            {
+                                "next": "yellow",
+                                "before": [{"log": "trafficLight: Before Transition Green ----> Yellow"}],
+                                "after": [{"log": "trafficLight: After Transition Green ----> Yellow"}]
+                            }
+                        ]
+                    }
+                },
+                "initialState": "red"
+            }
+        }
+    }
+}
