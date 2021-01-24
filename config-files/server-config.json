@@ -7,7 +7,7 @@
             "protocol": "http",
             "things": {
                 "./examples/td/coffee_machine_td.json": {
-                    "instances": 100,
+                    "instances": 1,
                     "eventIntervals": {
                         "maintenance": 10,
                         "error": 8 
@@ -20,7 +20,25 @@
             "protocol": "coap",
             "things": {
                 "./examples/td/coffee_machine_td.json": {
-                    "instances": 500,
+                    "instances": 5,
+                    "eventIntervals": {
+                        "maintenance": 5,
+                        "error": 20
+                    }
+                }
+            }
+        },
+        {
+            "instances": 5,
+            "protocol": "mqtt",
+            "mqttConfig":{
+                "uri":"localhost",
+                "username":"testuser",
+                "password":"test"
+            },
+            "things": {
+                "./examples/td/coffee_machine_td.json": {
+                    "instances": 1,
                     "eventIntervals": {
                         "maintenance": 5,
                         "error": 20

@@ -10,8 +10,9 @@ node_modules
 # ignore dist
 dist/
 
+# REMOVED as package-lock.json file is needed for github actions CI workflow
 # ignore package-lock.json as not part of published module and might cause break
-package-lock.json
+# package-lock.json
 
 # MacOS
 .DS_Store
