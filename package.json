@@ -41,7 +41,7 @@
     "@node-wot/binding-websockets": "0.7.0-SNAPSHOT.5",
     "@node-wot/core": "0.7.0-SNAPSHOT.5",
     "aedes": "0.42.1",
-    "ajv": "6.5.5",
+    "ajv": "6.12.3",
     "csv-writer": "1.5.0",
     "csvjson": "^5.1.0",
     "date-fns": "^2.16.1",
