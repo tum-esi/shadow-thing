@@ -37,7 +37,7 @@
   "dependencies": {
     "@node-wot/binding-coap": "0.7.0-SNAPSHOT.5",
     "@node-wot/binding-http": "0.7.0-SNAPSHOT.5",
-    "@node-wot/binding-mqtt": "0.7.0-SNAPSHOT.5",
+    "@node-wot/binding-mqtt": "0.8.2",
     "@node-wot/binding-websockets": "0.7.0-SNAPSHOT.5",
     "@node-wot/core": "0.7.0-SNAPSHOT.5",
     "aedes": "0.42.1",
