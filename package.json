@@ -52,7 +52,7 @@
     "json-schema-faker": "^0.4.7",
     "json-schema-instantiator": "^0.4.8",
     "jsonld": "8.1.0",
-    "mathjs": "^6.6.5",
+    "mathjs": "^7.5.1",
     "winston": "3.1.0",
     "wot-typescript-definitions": "0.7.1-SNAPSHOT.1"
   },
